@@ -71,4 +71,4 @@ Licenses: [Licenses\external_dependencies](external_licenses)
 
 ## Contact
 - mail: mobile.vr@outlook.com
-- discord invite: 
+- discord: add me @mobilevr to join the server
