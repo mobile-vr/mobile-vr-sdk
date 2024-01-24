@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+
+android {
+    defaultConfig {
+        compileSdkVersion 31
+        applicationId "com.google.ar.core.examples.java.helloar"
+
+        // AR Optional apps must declare minSdkVersion >= 14.
+        // AR Required apps must declare minSdkVersion >= 24.
+        minSdkVersion 24
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 31
+        versionCode 1
+        versionName '1.0'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    namespace 'com.google.ar.core.examples.java.helloar'
+}
+
+dependencies {
+    // ARCore (Google Play Services for AR) library.
+    implementation 'com.google.ar:core:1.40.0'
+
+    // Obj - a simple Wavefront OBJ file loader
+    // https://github.com/javagl/Obj
+    implementation 'de.javagl:obj:0.2.1'
+
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'com.google.android.material:material:1.1.0'
+
+
+    // MediaPipe solution-core is the foundation of any MediaPipe Solutions.
+    implementation 'com.google.mediapipe:solution-core:latest.release'
+    // Optional: MediaPipe Face Detection Solution.
+    implementation 'com.google.mediapipe:facedetection:latest.release'
+    // Optional: MediaPipe Face Mesh Solution.
+    implementation 'com.google.mediapipe:facemesh:latest.release'
+    // Optional: MediaPipe Hands Solution.
+    implementation 'com.google.mediapipe:hands:latest.release'
+
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+
+}

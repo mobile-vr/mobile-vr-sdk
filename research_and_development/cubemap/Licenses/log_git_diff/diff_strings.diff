@@ -1,0 +1,41 @@
+diff --git "a/C:\\Users\\loicg\\Documents\\checkfilesdiff\\hello_ar_java-1.41.0\\hello_ar_java\\app\\src\\main\\res\\values\\strings.xml" "b/C:\\Users\\loicg\\Documents\\checkfilesdiff\\cubemap\\app\\src\\main\\res\\values\\strings.xml"
+index 8415eaa..7cca32f 100644
+--- "a/C:\\Users\\loicg\\Documents\\checkfilesdiff\\hello_ar_java-1.41.0\\hello_ar_java\\app\\src\\main\\res\\values\\strings.xml"
++++ "b/C:\\Users\\loicg\\Documents\\checkfilesdiff\\cubemap\\app\\src\\main\\res\\values\\strings.xml"
+@@ -14,8 +14,27 @@
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ -->
++
++<!--
++   Copyright 2024 MasterHansCoding (GitHub)
++
++   Licensed under the Apache License, Version 2.0 (the "License");
++   you may not use this file except in compliance with the License.
++   You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++   Unless required by applicable law or agreed to in writing, software
++   distributed under the License is distributed on an "AS IS" BASIS,
++   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++   See the License for the specific language governing permissions and
++   limitations under the License.
++
++   Get the detailed modifications in "Licenses/log_git_diff/diff_strings.diff"
++   at root of this app.
++-->
+ <resources>
+-  <string translatable="false" name="app_name">HelloAR Java</string>
++  <string translatable="false" name="app_name">BaseApp</string>
+   <string translatable="false" name="depth_use_explanation">When Depth is enabled on supported devices, virtual objects adapt to the environment by blending in with the real world.</string>
+   <string translatable="false" name="button_text_enable_depth">Enable</string>
+   <string translatable="false" name="button_text_disable_depth">Disable</string>
+@@ -27,6 +46,7 @@
+     <item>Show depth map</item>
+   </string-array>
+   <string translatable="false" name="options_title_instant_placement">Instant Placement options</string>
++  <string name="hello">hello</string>
+   <string-array translatable="false" name="instant_placement_options_array">
+     <item>Enable Instant Placement</item>
+   </string-array>
