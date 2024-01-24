@@ -1,0 +1,97 @@
+diff --git "a/C:\\Users\\loicg\\Documents\\checkfilesdiff\\hello_ar_java-1.41.0\\hello_ar_java\\app\\src\\main\\java\\com\\google\\ar\\core\\examples\\java\\common\\samplerender\\Shader.java" "b/C:\\Users\\loicg\\Documents\\checkfilesdiff\\texture_square\\app\\src\\main\\java\\com\\mobilevr\\modified\\samplerender\\Shader.java"
+index 92fe162..009ff9c 100644
+--- "a/C:\\Users\\loicg\\Documents\\checkfilesdiff\\hello_ar_java-1.41.0\\hello_ar_java\\app\\src\\main\\java\\com\\google\\ar\\core\\examples\\java\\common\\samplerender\\Shader.java"
++++ "b/C:\\Users\\loicg\\Documents\\checkfilesdiff\\texture_square\\app\\src\\main\\java\\com\\mobilevr\\modified\\samplerender\\Shader.java"
+@@ -13,7 +13,28 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-package com.google.ar.core.examples.java.common.samplerender;
++
++/*
++ * Copyright 2024 MasterHansCoding (GitHub)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ * Modifications:
++ *
++ * Get the detailed modifications in "Licenses/log_git_diff/diff_Shader.diff"
++ * at root of this app.
++ */
++package com.mobilevr.modified.samplerender;
+ 
+ import static java.nio.charset.StandardCharsets.UTF_8;
+ 
+@@ -21,6 +42,7 @@ import android.content.res.AssetManager;
+ import android.opengl.GLES30;
+ import android.opengl.GLException;
+ import android.util.Log;
++
+ import java.io.Closeable;
+ import java.io.IOException;
+ import java.io.InputStream;
+@@ -75,7 +97,6 @@ public class Shader implements Closeable {
+ 
+   private boolean depthTest = true;
+   private boolean depthWrite = true;
+-  private boolean cullFace = true;
+   private BlendFactor sourceRgbBlend = BlendFactor.ONE;
+   private BlendFactor destRgbBlend = BlendFactor.ZERO;
+   private BlendFactor sourceAlphaBlend = BlendFactor.ONE;
+@@ -188,17 +209,6 @@ public class Shader implements Closeable {
+     return this;
+   }
+ 
+-  /**
+-   * Sets cull face state.
+-   *
+-   * @see <a
+-   *     href="https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glEnable.xhtml">glEnable(GL_CULL_FACE)</a>.
+-   */
+-  public Shader setCullFace(boolean cullFace) {
+-    this.cullFace = cullFace;
+-    return this;
+-  }
+-
+   /**
+    * Sets blending function.
+    *
+@@ -231,7 +241,13 @@ public class Shader implements Closeable {
+     return this;
+   }
+ 
+-  /** Sets a texture uniform. */
++  /**
++   * Sets a texture uniform.
++   *
++   * @param name: (String) the uniform variable name in the fragment shader.
++   * @param texture: (Texture) the texture to link the shader with.
++   * @return : (Shader)
++   */
+   public Shader setTexture(String name, Texture texture) {
+     // Special handling for Textures. If replacing an existing texture uniform, reuse the texture
+     // unit.
+@@ -423,13 +439,6 @@ public class Shader implements Closeable {
+       GLES30.glDisable(GLES30.GL_DEPTH_TEST);
+       GLError.maybeThrowGLException("Failed to disable depth test", "glDisable");
+     }
+-    if (cullFace) {
+-      GLES30.glEnable(GLES30.GL_CULL_FACE);
+-      GLError.maybeThrowGLException("Failed to enable backface culling", "glEnable");
+-    } else {
+-      GLES30.glDisable(GLES30.GL_CULL_FACE);
+-      GLError.maybeThrowGLException("Failed to disable backface culling", "glDisable");
+-    }
+     try {
+       // Remove all non-texture uniforms from the map after setting them, since they're stored as
+       // part of the program.
