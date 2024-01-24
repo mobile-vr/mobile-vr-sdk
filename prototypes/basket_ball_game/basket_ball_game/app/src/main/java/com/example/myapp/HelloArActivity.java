@@ -35,6 +35,8 @@
 
 package com.example.myapp;
 
+import com.baseapp.R;
+
 import static com.mobilevr.utils.GeometryUtils.interpolatePoint;
 import static com.mobilevr.utils.GeometryUtils.getFingerQuaternion;
 import static com.mobilevr.utils.GeometryUtils.checkTouchingIF;
@@ -84,7 +86,6 @@ import com.mobilevr.modified.samplerender.SampleRender;
 import com.mobilevr.modified.samplerender.Shader;
 import com.mobilevr.modified.samplerender.Texture;
 
-import com.google.ar.core.examples.java.helloar.R;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
@@ -244,7 +245,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     // DEBUG PARAMETERS
     drawIntersectionPoint = false;
     drawPointer = true;
-    fixCamera = true;
+    fixCamera = false;
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
