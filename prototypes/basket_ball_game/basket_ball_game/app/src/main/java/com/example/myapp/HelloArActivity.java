@@ -374,14 +374,20 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       }
     }
 
-    // Create and start new HandsTrackingThread
-    handsTrackingThread = new HandsTrackingThread(nonUiContext);
-    handsTrackingThread.start();
-    Log.i(
-            TAG,
-            "Starting hands tracking thread: " +
-                    Boolean.toString(handsTrackingThread.isRunning)
-    );
+    Thread asyncThread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        // Create and start new HandsTrackingThread
+        handsTrackingThread = new HandsTrackingThread(nonUiContext);
+        handsTrackingThread.start();
+        Log.i(
+                TAG,
+                "Starting hands tracking thread: " +
+                        Boolean.toString(handsTrackingThread.isRunning)
+        );
+      }
+    });
+    asyncThread.start();
 
     // Note that order matters - see the note in onPause(), the reverse applies here.
     try {
@@ -495,8 +501,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       cubeObjectShader =
           Shader.createFromAssets(
               render,
-              "shaders/houseShader.vert", // .vert is for the position
-              "shaders/houseShader.frag", // .frag is for the color
+              "shaders/simpleShader.vert", // .vert is for the position
+              "shaders/simpleShader.frag", // .frag is for the color
               null);
 
       // TRIANGLE object init
@@ -510,8 +516,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
               0,  1, 2
       };
       int COORDS_PER_VERTEX = 3;
-      String vertexShaderFileName = "shaders/houseShader.vert";
-      String fragmentShaderFileName = "shaders/houseShader.frag";
+      String vertexShaderFileName = "shaders/simpleShader.vert";
+      String fragmentShaderFileName = "shaders/simpleShader.frag";
       String mode = "simple";
       triangleObject = new VirtualObject(
               render,
@@ -564,8 +570,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
               4, 3, 7
       };
       COORDS_PER_VERTEX = 3;
-      vertexShaderFileName = "shaders/houseShader.vert";
-      fragmentShaderFileName = "shaders/houseShader.frag";
+      vertexShaderFileName = "shaders/simpleShader.vert";
+      fragmentShaderFileName = "shaders/simpleShader.frag";
       mode = "simple";
       lineObject = new VirtualObject(
               render,
@@ -582,8 +588,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       basketBallObjectMesh = Mesh.createFromAsset(render, "models/basketBall.obj");
       basketBallObjectShader = Shader.createFromAssets(
               render,
-              "shaders/houseShader.vert", // is for the position
-              "shaders/houseShader.frag", // fragment is for the color
+              "shaders/simpleShader.vert", // is for the position
+              "shaders/simpleShader.frag", // fragment is for the color
               null
       );
 
@@ -632,8 +638,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       hoopObjectMesh = Mesh.createFromAsset(render, "models/hoopObject.obj");
       hoopObjectShader = Shader.createFromAssets(
               render,
-              "shaders/houseShader.vert", // is for the position
-              "shaders/houseShader.frag", // fragment is for the color
+              "shaders/simpleShader.vert", // is for the position
+              "shaders/simpleShader.frag", // fragment is for the color
               null
       );
 
@@ -710,8 +716,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
               0, 2, 3
       };
       COORDS_PER_VERTEX = 3;
-      vertexShaderFileName = "shaders/houseShader.vert";
-      fragmentShaderFileName = "shaders/houseShader.frag";
+      vertexShaderFileName = "shaders/simpleShader.vert";
+      fragmentShaderFileName = "shaders/simpleShader.frag";
       mode = "simple";
       digitSquareObject = new VirtualObject(
               render,
@@ -738,8 +744,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
               0, 2, 3
       };
       COORDS_PER_VERTEX = 3;
-      vertexShaderFileName = "shaders/houseShader.vert";
-      fragmentShaderFileName = "shaders/houseShader.frag";
+      vertexShaderFileName = "shaders/simpleShader.vert";
+      fragmentShaderFileName = "shaders/simpleShader.frag";
       mode = "simple";
       digitSquareTimerObject = new VirtualObject(
               render,
@@ -901,9 +907,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     // Clear the screen before drawing the next frame
     render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f, 2, x0, y0, u, v);
 
-
-    // Get landmarkList
-    List<LandmarkProto.NormalizedLandmark> landmarkList = handsTrackingThread.getLandmarkList();
+    List<LandmarkProto.NormalizedLandmark> landmarkList = null;
+    if (handsTrackingThread != null) {
+      // Get landmarkList
+      landmarkList = handsTrackingThread.getLandmarkList();
+    }
 
     // Get fingerQuaternion and rotationFingerQuaternion
     if (landmarkList != null) {
@@ -915,7 +923,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     }
 
     // CHECK INTERSECTION between finger direction and triangle
-    if (!ballThrown) {
+    if (!ballThrown && landmarkList != null) {
       checkTouchingIF(cameraPose, landmarkList, triangleCoords, pointE, fingerQuaternion);
     } else {
       rotationFingerQuaternion = null;
