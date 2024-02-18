@@ -279,20 +279,20 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       }
 
       // Create and start new HandsTrackingThread
-      if (handsTrackingThread == null) {
-        new Thread(new Runnable() {
-          @Override
-          public void run() {
-            handsTrackingThread = new HandsTrackingThread(nonUiContext);
-            handsTrackingThread.start();
-            Log.i(
-                    TAG,
-                    "Starting hands tracking thread: " +
-                            Boolean.toString(handsTrackingThread.isRunning)
-            );
-          }
-        }).start();
-      }
+      Thread asyncThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          // Create and start new HandsTrackingThread
+          handsTrackingThread = new HandsTrackingThread(nonUiContext);
+          handsTrackingThread.start();
+          Log.i(
+                  TAG,
+                  "Starting hands tracking thread: " +
+                          Boolean.toString(handsTrackingThread.isRunning)
+          );
+        }
+      });
+      asyncThread.start();
 
       // Note that order matters - see the note in onPause(), the reverse applies here.
       try {
