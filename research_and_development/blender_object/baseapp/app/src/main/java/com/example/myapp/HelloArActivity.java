@@ -43,6 +43,7 @@ import static com.mobilevr.utils.GeometryUtils.getFingerQuaternion;
 import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
 import com.mobilevr.handstracking.HandsTrackingThread;
 import com.mobilevr.designobjects.VirtualObject;
+import com.mobilevr.modified.samplerender.Texture;
 import com.mobilevr.modified.samplerender.arcore.BackgroundRenderer;
 import com.mobilevr.modified.samplerender.Framebuffer;
 import com.mobilevr.modified.samplerender.Mesh;
@@ -435,9 +436,18 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         cubeObjectShader =
                 Shader.createFromAssets(
                         render,
-                        "shaders/simpleShader.vert", // .vert is for the position
-                        "shaders/simpleShader.frag", // .frag is for the color
+                        "shaders/obj_shader.vert", // .vert is for the position
+                        "shaders/obj_shader.frag", // .frag is for the color
                         null);
+
+        // Cube Texture init
+        Texture cubeTexture = Texture.createFromAsset(
+                render,
+                "images/oak_veneer_01_diff_4k.jpg",
+                Texture.WrapMode.CLAMP_TO_EDGE,
+                Texture.ColorFormat.SRGB);
+
+        cubeObjectShader.setTexture("ourTexture", cubeTexture);
 
       } catch (IOException e) {
         Log.e(TAG, "Failed to read a required asset file", e);
@@ -616,8 +626,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
-      // setting the color
-      cubeObjectShader.setVec4("vColor", new float[]{0.63671875f, 0.76953125f, 0.22265625f, 1.0f});
       // Setting the position, scale and orientation to the square
       cubeObjectShader.setMat4("uMVPMatrix", uMVPMatrix);
       // drawing the square on the virtual scene
