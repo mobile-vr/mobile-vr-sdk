@@ -55,6 +55,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
 import android.util.Log;
+import android.hardware.input.InputManager;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -128,6 +129,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   private float fovx, fovy;
   private float[] fingerQuaternion;
 
+  // Controller
+  private InputManager myInputManager;
+  private GameControllerManager myGameControllerManager;
+
   // ======================================================================================= //
   //                                        keep above
   // ======================================================================================= //
@@ -174,6 +179,17 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
+
+    // Controller
+    // Get the InputManager
+    myInputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+
+    // Check if InputManager is available
+    if (myInputManager == null) {
+      // InputManager is not available on this device
+      throw new Error("InputManager not available");
+    }
+    myGameControllerManager = new GameControllerManager(myInputManager);
   }
 
   /**
@@ -474,6 +490,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         return;
       }
 
+      // Controller
+
+
       // Texture names should only be set once on a GL thread unless they change. This is done during
       // onDrawFrame rather than onSurfaceCreated since the session is not guaranteed to have been
       // initialized during the execution of onSurfaceCreated.
@@ -717,4 +736,3 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       session.configure(config);
     }
 }
-
