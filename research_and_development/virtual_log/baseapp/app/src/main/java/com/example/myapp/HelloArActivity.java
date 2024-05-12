@@ -43,6 +43,8 @@ import static com.mobilevr.utils.GeometryUtils.getFingerQuaternion;
 import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
 import com.mobilevr.handstracking.HandsTrackingThread;
 import com.mobilevr.designobjects.VirtualObject;
+import com.mobilevr.log.BitmapData;
+import com.mobilevr.modified.samplerender.Texture;
 import com.mobilevr.modified.samplerender.arcore.BackgroundRenderer;
 import com.mobilevr.modified.samplerender.Framebuffer;
 import com.mobilevr.modified.samplerender.Mesh;
@@ -50,11 +52,14 @@ import com.mobilevr.modified.samplerender.SampleRender;
 import com.mobilevr.modified.samplerender.Shader;
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
 import android.media.Image;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -84,10 +89,15 @@ import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationExceptio
 import com.google.mediapipe.formats.proto.LandmarkProto;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
+  static {
+    System.loadLibrary("myTargetd");
+  }
   private static final String TAG = "mobilevr";
   private static final float Z_NEAR = 0.1f;
   private static final float Z_FAR = 100f;
@@ -134,9 +144,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
   // Implement your variables here
 
-  // Cube
-  private Mesh cubeObjectMesh;
-  private Shader cubeObjectShader;
+  private VirtualObject squareObject;
 
   // ======================================================================================= //
   //                                        keep below
@@ -426,21 +434,80 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
       // Implement the objects of your game here.
 
-      // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
-      // an IOException.
       try {
-        // For example here's a CUBE
-        cubeObjectMesh = Mesh.createFromAsset(render, "models/cube.obj");
+        // Open an InputStream to the font file in assets
+        AssetManager assetManager = getAssets();
+        InputStream inputStream = assetManager.open("fonts/16020_FUTURAM.ttf");
 
-        cubeObjectShader =
-                Shader.createFromAssets(
-                        render,
-                        "shaders/simpleShader.vert", // .vert is for the position
-                        "shaders/simpleShader.frag", // .frag is for the color
-                        null);
+        // Read the font file into a byte array
+        byte[] fontData = new byte[inputStream.available()]; // deallocate after calling FT_Done_Face
+        inputStream.read(fontData);
+        inputStream.close();
 
+        // Pass the byte array to the native method
+        long fontPtr = loadFontFromAssets(fontData);
+        Log.i(TAG, String.valueOf(fontPtr));
+
+        int numGlyphs = get_num_glyphs(fontPtr);
+        Log.i(TAG, "numGlyphs: " + numGlyphs);
+
+        // For each wanted character create a texture in OpenGL
+
+        BitmapData characterBitmap = getCharacterBitmap(fontPtr, 0x0065);
+        Log.i(TAG, String.valueOf(characterBitmap.getHeight()));
+
+        // Create Bitmap from pixel data
+        Bitmap bitmap = Bitmap.createBitmap(characterBitmap.getWidth(),
+                characterBitmap.getHeight(), Bitmap.Config.ALPHA_8);
+        bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(characterBitmap.getData()));
+
+        // square Texture init
+        Texture squareTexture = Texture.createFromBitmap(
+                render,
+                bitmap,
+                Texture.WrapMode.CLAMP_TO_EDGE);
+
+        // Create a square
+        /*float[] squareCoords = { // counterclock order
+                // Front face
+                -0.4f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+                -0.4f, 0.4f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.4f, 0.4f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                0.4f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
+        };*/
+        float[] squareCoords = { // counterclock order
+                // Front face
+                -0.2f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+                -0.2f, 0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.2f, 0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                0.2f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
+        };
+        int[] squareIndex = {
+                // Front face
+                0, 1, 2,
+                0, 2, 3
+        };
+        COORDS_PER_VERTEX = 8; // 3 for position, 3 for color, 2 for texture coordinates
+        vertexShaderFileName = "shaders/textureShader.vert";
+        fragmentShaderFileName = "shaders/textureShader.frag";
+        mode = "texture";
+        squareObject = new VirtualObject(
+                render,
+                COORDS_PER_VERTEX,
+                squareCoords,
+                squareIndex,
+                vertexShaderFileName,
+                fragmentShaderFileName,
+                null,
+                mode);
+
+        // apply the texture to the square
+        squareObject.shader.setTexture("ourTexture", squareTexture);
+
+        // Use the fontPtr as needed
       } catch (IOException e) {
-        Log.e(TAG, "Failed to read a required asset file", e);
+        e.printStackTrace();
+        Log.e(TAG, e.toString());
       }
 
       // ======================================================================================= //
@@ -609,20 +676,20 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
       // Implement the drawing behavior of your game here.
 
-      // For example here's a CUBE
+      // DRAW SQUARE
       // applying transformations:
       Matrix.setIdentityM(modelMatrix, 0);
-      Matrix.translateM(modelMatrix, 0, 0.0f, 0f, -2.0f);
-      Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+      //Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, 0.0f);
+      //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
-      // setting the color
-      cubeObjectShader.setVec4("vColor", new float[]{0.63671875f, 0.76953125f, 0.22265625f, 1.0f});
+
       // Setting the position, scale and orientation to the square
-      cubeObjectShader.setMat4("uMVPMatrix", uMVPMatrix);
-      // drawing the square on the virtual scene
-      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+      squareObject.shader.setMat4("uMVPMatrix", uMVPMatrix);
+
+      // drawing the square
+      render.draw(squareObject.mesh, squareObject.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+      render.draw(squareObject.mesh, squareObject.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
 
 
 
@@ -716,5 +783,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //session.setCameraConfig(cameraConfig);
       session.configure(config);
     }
+
+    public native String stringFromJNI();
+    public native long loadFont(String fontPath);
+    public native long loadFontFromAssets(byte[] fontData);
+    public native int get_num_glyphs(long face);
+    public native BitmapData getCharacterBitmap(long face, long charCode);
 }
 
