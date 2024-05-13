@@ -54,7 +54,9 @@ import com.mobilevr.modified.samplerender.Shader;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.Image;
+import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
@@ -91,6 +93,7 @@ import com.google.mediapipe.formats.proto.LandmarkProto;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -178,7 +181,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
     // DEBUG PARAMETERS
     drawPointer = true;
-    fixCamera = true;
+    fixCamera = false;
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
@@ -454,18 +457,41 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         // For each wanted character create a texture in OpenGL
 
         BitmapData characterBitmap = getCharacterBitmap(fontPtr, 0x0065);
-        Log.i(TAG, String.valueOf(characterBitmap.getHeight()));
+        Log.i(TAG, "w and h: " + characterBitmap.getWidth() + " ; " + characterBitmap.getHeight());
 
         // Create Bitmap from pixel data
         Bitmap bitmap = Bitmap.createBitmap(characterBitmap.getWidth(),
                 characterBitmap.getHeight(), Bitmap.Config.ALPHA_8);
-        bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(characterBitmap.getData()));
+        ByteBuffer glyphBuffer = ByteBuffer.wrap(characterBitmap.getData());
+        bitmap.copyPixelsFromBuffer(glyphBuffer);
+        glyphBuffer.rewind();
 
         // square Texture init
         Texture squareTexture = Texture.createFromBitmap(
                 render,
+                glyphBuffer,
+                Texture.WrapMode.CLAMP_TO_EDGE,
+                GLES30.GL_RED,
+                characterBitmap.getWidth(),
+                characterBitmap.getHeight());
+
+        // rabbit texture
+        /*Texture squareTexture = Texture.createFromAsset(
+                render,
+                "images/rabbit.png",
+                Texture.WrapMode.CLAMP_TO_EDGE,
+                Texture.ColorFormat.SRGB);*/
+
+        /*bitmap =
+                Texture.convertBitmapToConfig(
+                        BitmapFactory.decodeStream(this.getAssets().open("images/rabbit.png")),
+                        Bitmap.Config.ARGB_8888);
+
+        Texture squareTexture = Texture.createFromBitmap(
+                render,
                 bitmap,
-                Texture.WrapMode.CLAMP_TO_EDGE);
+                Texture.WrapMode.CLAMP_TO_EDGE,
+                GLES30.GL_SRGB);*/
 
         // Create a square
         /*float[] squareCoords = { // counterclock order

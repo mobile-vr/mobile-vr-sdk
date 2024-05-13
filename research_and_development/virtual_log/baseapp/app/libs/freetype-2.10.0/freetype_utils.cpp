@@ -179,7 +179,7 @@ Java_com_example_myapp_HelloArActivity_getCharacterBitmap(JNIEnv* env,
 
     // render glyph
     error = FT_Render_Glyph( facePtr->glyph,   /* glyph slot  */
-                             FT_RENDER_MODE_NORMAL ); /* render mode */
+                             FT_RENDER_MODE_NORMAL ); /* render mode */ // FT_RENDER_MODE_GRAY
 
     // Extract pixel data from glyph slot
     unsigned char* pixels = facePtr->glyph->bitmap.buffer;
@@ -189,6 +189,14 @@ Java_com_example_myapp_HelloArActivity_getCharacterBitmap(JNIEnv* env,
     if (pixels == nullptr) {
         throw std::runtime_error("pixels is a null pointer");
     }
+
+    /*for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            unsigned char pixelValue = pixels[y * width + x];
+            __android_log_print(ANDROID_LOG_INFO, "BitmapData", "%d ", pixelValue);
+        }
+        __android_log_print(ANDROID_LOG_INFO, "BitmapData", "\n");
+    }*/
 
     __android_log_print(ANDROID_LOG_ERROR, "glyph",
                         "glyph data read");

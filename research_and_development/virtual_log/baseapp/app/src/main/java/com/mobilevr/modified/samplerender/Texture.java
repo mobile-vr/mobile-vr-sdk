@@ -191,23 +191,24 @@ public class Texture implements Closeable {
 
   /** Create a texture from the given bitmap. */
   public static Texture createFromBitmap(
-          SampleRender render, Bitmap bitmap, WrapMode wrapMode) {
+          SampleRender render, ByteBuffer buffer, WrapMode wrapMode, int colorFormat, int width, int height) {
     Texture texture = new Texture(render, Target.TEXTURE_2D, wrapMode);
     try {
+      /*Log.i(TAG, "byte count: " + bitmap.getByteCount());
       ByteBuffer buffer = ByteBuffer.allocateDirect(bitmap.getByteCount());
       bitmap.copyPixelsToBuffer(buffer);
-      buffer.rewind();
+      buffer.rewind();*/
 
       GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, texture.getTextureId());
       GLError.maybeThrowGLException("Failed to bind texture", "glBindTexture");
       GLES30.glTexImage2D(
               GLES30.GL_TEXTURE_2D,
               /*level=*/ 0,
-              GLES30.GL_ALPHA,
-              bitmap.getWidth(),
-              bitmap.getHeight(),
+              colorFormat,
+              width,
+              height,
               /*border=*/ 0,
-              GLES30.GL_ALPHA,
+              colorFormat,
               GLES30.GL_UNSIGNED_BYTE,
               buffer);
       GLError.maybeThrowGLException("Failed to populate texture data", "glTexImage2D");
@@ -216,11 +217,11 @@ public class Texture implements Closeable {
     } catch (Throwable t) {
       texture.close();
       throw t;
-    } finally {
+    } /*finally {
       if (bitmap != null) {
         bitmap.recycle();
       }
-    }
+    }*/
     return texture;
   }
 
@@ -243,7 +244,7 @@ public class Texture implements Closeable {
     return target;
   }
 
-  private static Bitmap convertBitmapToConfig(Bitmap bitmap, Bitmap.Config config) {
+  public static Bitmap convertBitmapToConfig(Bitmap bitmap, Bitmap.Config config) {
     // We use this method instead of BitmapFactory.Options.outConfig to support a minimum of Android
     // API level 24.
     if (bitmap.getConfig() == config) {
