@@ -44,6 +44,7 @@ import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
 import com.mobilevr.handstracking.HandsTrackingThread;
 import com.mobilevr.designobjects.VirtualObject;
 import com.mobilevr.log.BitmapData;
+import com.mobilevr.log.VirtualLogWindow;
 import com.mobilevr.modified.samplerender.Texture;
 import com.mobilevr.modified.samplerender.arcore.BackgroundRenderer;
 import com.mobilevr.modified.samplerender.Framebuffer;
@@ -94,7 +95,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
@@ -146,8 +149,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // ======================================================================================= //
 
   // Implement your variables here
-
-  private VirtualObject squareObject;
+  private Map<Character, VirtualObject> fontMap = new HashMap<>();
+  private VirtualLogWindow virtualLogWindow;
 
   // ======================================================================================= //
   //                                        keep below
@@ -454,81 +457,67 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         int numGlyphs = get_num_glyphs(fontPtr);
         Log.i(TAG, "numGlyphs: " + numGlyphs);
 
+        virtualLogWindow = new VirtualLogWindow(
+                30,
+                10,
+                -1.0f,
+                0.4f,
+                0.5f);
+
         // For each wanted character create a texture in OpenGL
+        for (char c = 0; c < 128; c++) {
 
-        BitmapData characterBitmap = getCharacterBitmap(fontPtr, 0x0065);
-        Log.i(TAG, "w and h: " + characterBitmap.getWidth() + " ; " + characterBitmap.getHeight());
+          BitmapData characterBitmap = getCharacterBitmap(fontPtr, c);
+          Log.i(TAG, "w and h: " + characterBitmap.getWidth() + " ; " + characterBitmap.getHeight());
 
-        // Create Bitmap from pixel data
-        Bitmap bitmap = Bitmap.createBitmap(characterBitmap.getWidth(),
-                characterBitmap.getHeight(), Bitmap.Config.ALPHA_8);
-        ByteBuffer glyphBuffer = ByteBuffer.wrap(characterBitmap.getData());
-        bitmap.copyPixelsFromBuffer(glyphBuffer);
-        glyphBuffer.rewind();
+          // Create Bitmap from pixel data
+          Bitmap bitmap = Bitmap.createBitmap(characterBitmap.getWidth(),
+                  characterBitmap.getHeight(), Bitmap.Config.ALPHA_8);
+          ByteBuffer glyphBuffer = ByteBuffer.wrap(characterBitmap.getData());
+          bitmap.copyPixelsFromBuffer(glyphBuffer);
+          glyphBuffer.rewind();
 
-        // square Texture init
-        Texture squareTexture = Texture.createFromBitmap(
-                render,
-                glyphBuffer,
-                Texture.WrapMode.CLAMP_TO_EDGE,
-                GLES30.GL_ALPHA, // GL_RED,
-                characterBitmap.getWidth(),
-                characterBitmap.getHeight());
+          // square Texture init
+          Texture squareTexture = Texture.createFromBitmap(
+                  render,
+                  glyphBuffer,
+                  Texture.WrapMode.CLAMP_TO_EDGE,
+                  GLES30.GL_ALPHA, // GL_RED,
+                  characterBitmap.getWidth(),
+                  characterBitmap.getHeight());
 
-        // rabbit texture
-        /*Texture squareTexture = Texture.createFromAsset(
-                render,
-                "images/rabbit.png",
-                Texture.WrapMode.CLAMP_TO_EDGE,
-                Texture.ColorFormat.SRGB);*/
+          // Create a square
+          float[] squareCoords = { // counterclock order
+                  // Front face
+                  virtualLogWindow.quadBotLeftX, virtualLogWindow.quadBotLeftY, virtualLogWindow.zPos, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+                  virtualLogWindow.quadTopLeftX, virtualLogWindow.quadTopLeftY, virtualLogWindow.zPos, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                  virtualLogWindow.quadTopRightX, virtualLogWindow.quadTopRightY, virtualLogWindow.zPos, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                  virtualLogWindow.quadBotRightX, virtualLogWindow.quadBotRightY, virtualLogWindow.zPos, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f
+          };
+          int[] squareIndex = {
+                  // Front face
+                  0, 1, 2,
+                  0, 2, 3
+          };
+          COORDS_PER_VERTEX = 8; // 3 for position, 3 for color, 2 for texture coordinates
+          vertexShaderFileName = "shaders/textureShader.vert";
+          fragmentShaderFileName = "shaders/textureShader.frag";
+          mode = "texture";
+          VirtualObject quad = new VirtualObject(
+                  render,
+                  COORDS_PER_VERTEX,
+                  squareCoords,
+                  squareIndex,
+                  vertexShaderFileName,
+                  fragmentShaderFileName,
+                  null,
+                  mode);
 
-        /*bitmap =
-                Texture.convertBitmapToConfig(
-                        BitmapFactory.decodeStream(this.getAssets().open("images/rabbit.png")),
-                        Bitmap.Config.ARGB_8888);
+          // apply the texture to the square
+          quad.shader.setTexture("ourTexture", squareTexture);
 
-        Texture squareTexture = Texture.createFromBitmap(
-                render,
-                bitmap,
-                Texture.WrapMode.CLAMP_TO_EDGE,
-                GLES30.GL_SRGB);*/
-
-        // Create a square
-        /*float[] squareCoords = { // counterclock order
-                // Front face
-                -0.4f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-                -0.4f, 0.4f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                0.4f, 0.4f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                0.4f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
-        };*/
-        float[] squareCoords = { // counterclock order
-                // Front face
-                -0.2f, -0.2f, -2.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-                -0.2f, 0.2f, -2.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                0.2f, 0.2f, -2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                0.2f, -0.2f, -2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f
-        };
-        int[] squareIndex = {
-                // Front face
-                0, 1, 2,
-                0, 2, 3
-        };
-        COORDS_PER_VERTEX = 8; // 3 for position, 3 for color, 2 for texture coordinates
-        vertexShaderFileName = "shaders/textureShader.vert";
-        fragmentShaderFileName = "shaders/textureShader.frag";
-        mode = "texture";
-        squareObject = new VirtualObject(
-                render,
-                COORDS_PER_VERTEX,
-                squareCoords,
-                squareIndex,
-                vertexShaderFileName,
-                fragmentShaderFileName,
-                null,
-                mode);
-
-        // apply the texture to the square
-        squareObject.shader.setTexture("ourTexture", squareTexture);
+          fontMap.put(c, quad);
+        }
 
         // Use the fontPtr as needed
       } catch (IOException e) {
@@ -711,11 +700,13 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 
       // Setting the position, scale and orientation to the square
-      squareObject.shader.setMat4("uMVPMatrix", uMVPMatrix);
+      VirtualObject anyChar = fontMap.get('e');
+      assert anyChar != null;
+      anyChar.shader.setMat4("uMVPMatrix", uMVPMatrix);
 
       // drawing the square
-      render.draw(squareObject.mesh, squareObject.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-      render.draw(squareObject.mesh, squareObject.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+      render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+      render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
 
 
 

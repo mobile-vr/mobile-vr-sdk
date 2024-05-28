@@ -133,7 +133,7 @@ Java_com_example_myapp_HelloArActivity_getCharacterBitmap(JNIEnv* env,
         throw std::runtime_error("FT_Set_Char_Size() failed");
     }
 
-    error = FT_Set_Pixel_Sizes(facePtr, 0, 400);
+    error = FT_Set_Pixel_Sizes(facePtr, 0, 50);
 
     __android_log_print(ANDROID_LOG_ERROR, "glyph",
                         "FT_Set_Pixel_Sizes called");
