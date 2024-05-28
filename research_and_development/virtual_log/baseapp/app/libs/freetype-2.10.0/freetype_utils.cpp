@@ -243,5 +243,8 @@ Java_com_example_myapp_HelloArActivity_getCharacterBitmap(JNIEnv* env,
     // Release the jbyteArray
     //env->ReleaseByteArrayElements(bitmapData, pixels, JNI_ABORT);
 
+    // Clean up
+    //FT_Done_FreeType(library);
+
     return bitmapObj;
 }

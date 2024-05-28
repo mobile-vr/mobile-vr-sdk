@@ -471,7 +471,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                 render,
                 glyphBuffer,
                 Texture.WrapMode.CLAMP_TO_EDGE,
-                GLES30.GL_RED,
+                GLES30.GL_ALPHA, // GL_RED,
                 characterBitmap.getWidth(),
                 characterBitmap.getHeight());
 
@@ -503,10 +503,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         };*/
         float[] squareCoords = { // counterclock order
                 // Front face
-                -0.2f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-                -0.2f, 0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                0.2f, 0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                0.2f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
+                -0.2f, -0.2f, -2.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+                -0.2f, 0.2f, -2.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.2f, 0.2f, -2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                0.2f, -0.2f, -2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f
         };
         int[] squareIndex = {
                 // Front face

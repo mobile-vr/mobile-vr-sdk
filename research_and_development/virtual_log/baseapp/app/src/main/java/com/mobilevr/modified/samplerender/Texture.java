@@ -120,6 +120,8 @@ public class Texture implements Closeable {
   public Texture(SampleRender render, Target target, WrapMode wrapMode, boolean useMipmaps) {
     this.target = target;
 
+    GLES30.glPixelStorei(GLES30.GL_UNPACK_ALIGNMENT, 1); // GL_RED texture
+
     GLES30.glGenTextures(1, textureId, 0);
     GLError.maybeThrowGLException("Texture creation failed", "glGenTextures");
 
