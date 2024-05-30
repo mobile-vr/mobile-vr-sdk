@@ -113,6 +113,9 @@ Java_com_example_myapp_HelloArActivity_getCharacterBitmap(JNIEnv* env,
     // Get charCode
     FT_ULong char_code = charCode;
 
+    __android_log_print(ANDROID_LOG_ERROR, "glyph",
+                        "charCode : %lu", char_code);
+
     // Check if the face pointer is valid
     if (!facePtr) {
         // Handle invalid face pointer
@@ -190,14 +193,6 @@ Java_com_example_myapp_HelloArActivity_getCharacterBitmap(JNIEnv* env,
         throw std::runtime_error("pixels is a null pointer");
     }
 
-    /*for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            unsigned char pixelValue = pixels[y * width + x];
-            __android_log_print(ANDROID_LOG_INFO, "BitmapData", "%d ", pixelValue);
-        }
-        __android_log_print(ANDROID_LOG_INFO, "BitmapData", "\n");
-    }*/
-
     __android_log_print(ANDROID_LOG_ERROR, "glyph",
                         "glyph data read");
 
@@ -243,8 +238,8 @@ Java_com_example_myapp_HelloArActivity_getCharacterBitmap(JNIEnv* env,
     // Release the jbyteArray
     //env->ReleaseByteArrayElements(bitmapData, pixels, JNI_ABORT);
 
-    // Clean up
-    //FT_Done_FreeType(library);
+    // Clean up, I don't know when to call it.
+    // FT_Done_FreeType(library);
 
     return bitmapObj;
 }
