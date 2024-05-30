@@ -153,6 +153,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   private VirtualLogWindow virtualLogWindow;
   private String myDebugString;
   private boolean debugScreenActivated;
+  private long t1;
+  private int number=0;
+  private VirtualObject windowBackground;
 
   // ======================================================================================= //
   //                                        keep below
@@ -442,6 +445,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // ======================================================================================= //
 
       // Implement the objects of your game here.
+      t1 = System.currentTimeMillis();
 
       // debug screen
       if (debugScreenActivated) {
@@ -462,12 +466,15 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
           int numGlyphs = get_num_glyphs(fontPtr);
           Log.i(TAG, "numGlyphs: " + numGlyphs);
 
+          float width = 0.4f;
+          float height = 0.4f;
+          float zPos = -0.5f;
           virtualLogWindow = new VirtualLogWindow(
                   30,
                   50,
-                  -1.0f,
-                  0.4f,
-                  0.8f);
+                  zPos,
+                  width,
+                  height);
 
           // For each wanted character create a texture in OpenGL, 33 is '!'
           for (char c = 33; c < 127; c++) {
@@ -528,6 +535,35 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
             fontMap.put(c, quad);
           }
+
+          // White background
+          width += 0.1f;
+          height += 0.1f;
+          float[] squareCoords = { // counterclock order
+                  // Front face, starting from bottom left, clockwise order
+                  - width / 2, -height / 2, zPos - 0.01f,
+                  -width / 2, height / 2, zPos - 0.01f,
+                  width / 2, height / 2, zPos - 0.01f,
+                  width / 2, -height / 2, zPos - 0.01f
+          };
+          int[] squareIndex = {
+                  // Front face
+                  0, 1, 2,
+                  0, 2, 3
+          };
+          COORDS_PER_VERTEX = 3; // 3 for position, 3 for color, 2 for texture coordinates
+          vertexShaderFileName = "shaders/simpleShader.vert";
+          fragmentShaderFileName = "shaders/simpleShader.frag";
+          mode = "simple";
+          windowBackground = new VirtualObject(
+                  render,
+                  COORDS_PER_VERTEX,
+                  squareCoords,
+                  squareIndex,
+                  vertexShaderFileName,
+                  fragmentShaderFileName,
+                  null,
+                  mode);
 
           // Use the fontPtr as needed
         } catch (IOException e) {
@@ -708,6 +744,12 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
       // Implement the drawing behavior of your game here.
 
+      /*if (System.currentTimeMillis() - t1 > 200) {
+        number += 1;
+        myDebugString += number + " ; ";
+        t1 = System.currentTimeMillis();
+      }*/
+
       // debug string
       virtualLogWindow.setString(myDebugString);
 
@@ -757,7 +799,20 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         }
       }
 
+      // draw debug window background
 
+      // applying transformations:
+      Matrix.setIdentityM(modelMatrix, 0);
+      //Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
+      //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
+      //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+      Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+
+      windowBackground.shader.setVec4("vColor", new float[]{1.0f, 1.0f, 1.0f, 1.0f});
+      windowBackground.shader.setMat4("uMVPMatrix", uMVPMatrix);
+
+      render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+      render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
 
 
       // ========================================================================================= //
