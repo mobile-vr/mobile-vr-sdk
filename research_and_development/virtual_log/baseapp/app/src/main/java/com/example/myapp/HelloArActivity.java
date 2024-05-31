@@ -191,7 +191,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
-    debugScreenActivated = true;
   }
 
   /**
@@ -443,6 +442,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // ======================================================================================= //
 
       // Implement the objects of your game here.
+
+      debugScreenActivated = true;
 
       // debug screen
       if (debugScreenActivated) {
