@@ -1,32 +1,22 @@
 ![screenshot](/screenshots/baseapp_screenshot.jpg)
 
 ## Why this baseapp?
-The baseapp is the starting point before developping a new feature, or creating<br>
-a new VR app. It contains all the currently implemented features via the<br>
-com.mobilevr package. It also contains guidelines (see the comments "keep<br>
-above" and "keep below" sections) in the HelloArActivity.java to help novices<br>
-understand how to implement their first objects.
+I need a virtual log to debug while being in VR, or while adb isn't available.<br>
 
 ## Features
-- 6-dof (ARCore)
-- HandsTracking (mediapipe)
-- Rendering (OpenGL)
-- Splitted screen like VR
-- Change screens sizes
+- virtual log window
 
 ## What does it do?
-- Display a cube
-- Display the pointer at the top of the finger
-- Configured for one hand
+- Display window with a string on it
 
 ## Used packages
 - com.example.myapp : where the activities are
 - com.google.ar.core : the ARCore package
 - com.mobilevr : the sdk of this repository
+- freetype c++ library
 
 ## Dependencies
 See [Licenses\external_dependencies](Licenses/external_licenses)
-
 
 ## Modifications from the original codes hello_ar_java<br>app from ARCore SDK for Android 1.41.0
 The logs of differences are here:
