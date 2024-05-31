@@ -153,8 +153,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   private VirtualLogWindow virtualLogWindow;
   private String myDebugString;
   private boolean debugScreenActivated;
-  private long t1;
-  private int number=0;
   private VirtualObject windowBackground;
 
   // ======================================================================================= //
@@ -445,7 +443,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // ======================================================================================= //
 
       // Implement the objects of your game here.
-      t1 = System.currentTimeMillis();
 
       // debug screen
       if (debugScreenActivated) {
@@ -743,12 +740,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // ========================================================================================= //
 
       // Implement the drawing behavior of your game here.
-
-      /*if (System.currentTimeMillis() - t1 > 200) {
-        number += 1;
-        myDebugString += number + " ; ";
-        t1 = System.currentTimeMillis();
-      }*/
 
       // debug string
       virtualLogWindow.setString(myDebugString);
