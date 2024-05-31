@@ -6,8 +6,6 @@ public class VirtualLogWindow {
     private int maxChar;
     private float charLength, charHeight;
     private float width, height;
-    public float quadTopLeftX, quadTopLeftY, quadTopRightX, quadTopRightY, quadBotLeftX, quadBotLeftY,
-            quadBotRightX, quadBotRightY;
     public float zPos;
 
     public VirtualLogWindow(int myLineMaxChar, int myRowsMax, float myZPos, float myWidth, float myHeight) {
@@ -21,19 +19,6 @@ public class VirtualLogWindow {
         // compute length and height of character
         charLength = width / lineMaxChar;
         charHeight = height / rowsMax;
-
-        // define the quad size
-        quadTopLeftX = -charLength / 2;
-        quadTopLeftY = charLength / 2;
-
-        quadTopRightX = charLength / 2;
-        quadTopRightY = charLength / 2;
-
-        quadBotLeftX = -charLength / 2;
-        quadBotLeftY = -charLength / 2;
-
-        quadBotRightX = charLength / 2;
-        quadBotRightY = -charLength / 2;
 
     }
 
