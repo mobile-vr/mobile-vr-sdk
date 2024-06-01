@@ -62,6 +62,8 @@ import android.opengl.Matrix;
 import android.os.Bundle;
 import android.util.Log;
 import android.hardware.input.InputManager;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -157,7 +159,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   private Shader cubeObjectShader;
   private Map<Character, VirtualObject> fontMap = new HashMap<>();
   private VirtualLogWindow virtualLogWindow;
-  private String myDebugString;
+  private String myDebugString="";
   private boolean debugScreenActivated;
   private VirtualObject windowBackground;
 
@@ -213,8 +215,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     if (myInputManager == null) {
       // InputManager is not available on this device
       //throw new Error("InputManager not available");
+      myDebugString += "InputManager not available";
     }
-    myGameControllerManager = new GameControllerManager(myInputManager);
+    myGameControllerManager = new GameControllerManager(myInputManager, 1000);
 
     myGameControllerManager.startListening();
 
@@ -362,6 +365,28 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         handsTrackingThread.interrupt();
       }
     }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    if (event.getAction() == KeyEvent.ACTION_DOWN) {
+      if (myGameControllerManager.onKeyDown(event.getKeyCode(), event)) {
+        return true;
+      }
+    } else if (event.getAction() == KeyEvent.ACTION_UP) {
+      if (myGameControllerManager.onKeyUp(event.getKeyCode(), event)) {
+        return true;
+      }
+    }
+    return super.dispatchKeyEvent(event);
+  }
+
+  @Override
+  public boolean dispatchGenericMotionEvent(MotionEvent event) {
+    if (myGameControllerManager.onGenericMotionEvent(event)) {
+      return true;
+    }
+    return super.dispatchGenericMotionEvent(event);
+  }
 
     /**
      * Check if the app has camera permissions.
@@ -512,12 +537,12 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
           int numGlyphs = get_num_glyphs(fontPtr);
           Log.i(TAG, "numGlyphs: " + numGlyphs);
 
-          float width = 0.4f;
-          float height = 0.4f;
-          float zPos = -0.5f;
+          float width = 0.7f;
+          float height = 1.0f;
+          float zPos = -1.5f;
           virtualLogWindow = new VirtualLogWindow(
-                  10,
-                  10,
+                  20,
+                  25,
                   zPos,
                   width,
                   height);
@@ -618,12 +643,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         }
       }
 
-      myDebugString = "Hello I am Mister glip glop! And I would like to tell everyone" +
-              "that I love eating ice cream. Seriously it is the best sh*t I've ever" +
-              "eaten! Please provide me like 1024568799999999999999999999999999999994545454" +
-              "545454 354364343435 453 435435 4534 35453434534 3543543543453453 453453" +
-              "ice creams so that I can eat that all the time! Thank you all bisouuus! <3";
-
 
 
       // ======================================================================================= //
@@ -656,9 +675,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       if (session == null) {
         return;
       }
-
-      // Controller
-
 
       // Texture names should only be set once on a GL thread unless they change. This is done during
       // onDrawFrame rather than onSurfaceCreated since the session is not guaranteed to have been
@@ -794,6 +810,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // ========================================================================================= //
 
       // Implement the drawing behavior of your game here.
+      virtualLogWindow.setString(myGameControllerManager.debugString.getBuffer());
 
       // For example here's a CUBE
       // applying transformations:
@@ -825,8 +842,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
       render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
 
-      // debug string
-      virtualLogWindow.setString(myDebugString);
 
       // init translation vector
       float tXInit = - virtualLogWindow.getWidth() / 2;
@@ -841,7 +856,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
         // change the position of character
         if (i % virtualLogWindow.getLineMaxChar() == 0) {
-          Log.i(TAG, "i : " + i + " rowNumber = " + rowNumber);
+          //Log.i(TAG, "i : " + i + " rowNumber = " + rowNumber);
           rowNumber += 1;
         }
 
@@ -850,7 +865,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
           float tX = tXInit + virtualLogWindow.getCharLength() * (i % virtualLogWindow.getLineMaxChar());
           float tY = tYInit - virtualLogWindow.getCharHeight() * rowNumber - verticalPadding * rowNumber;
-          Log.i(TAG, "tY : " + tY);
+          //Log.i(TAG, "tY : " + tY);
 
 
           // applying transformations:

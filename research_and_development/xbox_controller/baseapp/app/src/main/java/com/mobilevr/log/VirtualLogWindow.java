@@ -1,12 +1,15 @@
 package com.mobilevr.log;
 
+import com.mobilevr.utils.BoundedStringBuffer;
+
 public class VirtualLogWindow {
-    private String logString;
+    //private String logString;
     private int lineMaxChar, rowsMax;
     private int maxChar;
     private float charLength, charHeight;
     private float width, height;
     public float zPos;
+    private BoundedStringBuffer boundedStringBuffer;
 
     public VirtualLogWindow(int myLineMaxChar, int myRowsMax, float myZPos, float myWidth, float myHeight) {
         lineMaxChar = myLineMaxChar;
@@ -20,11 +23,13 @@ public class VirtualLogWindow {
         charLength = width / lineMaxChar;
         charHeight = height / rowsMax;
 
+        boundedStringBuffer = new BoundedStringBuffer(maxChar);
+
     }
 
     public void setString(String myString) {
         // reverse the string then setLength to cut the old part
-        logString = new StringBuilder(myString)
+        /*logString = new StringBuilder(myString)
                 .reverse()
                 .toString();
 
@@ -35,11 +40,12 @@ public class VirtualLogWindow {
         // reverse back the string
         logString = new StringBuilder(logString)
                 .reverse()
-                .toString();
+                .toString();*/
+        boundedStringBuffer.add(myString);
     }
 
     public String getString() {
-        return logString;
+        return boundedStringBuffer.getBuffer();
     }
 
     public int getMaxChar() {
