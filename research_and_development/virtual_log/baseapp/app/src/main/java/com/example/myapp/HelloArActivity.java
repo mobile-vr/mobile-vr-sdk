@@ -493,7 +493,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                     render,
                     glyphBuffer,
                     Texture.WrapMode.CLAMP_TO_EDGE,
-                    GLES30.GL_ALPHA, // GL_RED,
+                    GLES30.GL_LUMINANCE,
                     characterBitmap.getWidth(),
                     characterBitmap.getHeight());
 
@@ -756,17 +756,17 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       for (int i=0; i < virtualLogWindow.getString().length() ; i++ ) {
         char c = virtualLogWindow.getString().charAt(i);
 
+        // change the position of character
+        if (i % virtualLogWindow.getLineMaxChar() == 0) {
+          Log.i(TAG, "i : " + i + " rowNumber = " + rowNumber);
+          rowNumber += 1;
+        }
+
         // if the character is a space, leave a space
         if (c != ' ') {
 
-          // change the position of character
-          if (i % virtualLogWindow.getLineMaxChar() == 0) {
-            Log.i(TAG, "i : " + i + " rowNumber = " + rowNumber);
-            rowNumber += 1;
-          }
-
           float tX = tXInit + virtualLogWindow.getCharLength() * (i % virtualLogWindow.getLineMaxChar());
-          float tY = tYInit - virtualLogWindow.getCharLength() * rowNumber - verticalPadding * rowNumber;
+          float tY = tYInit - virtualLogWindow.getCharHeight() * rowNumber - verticalPadding * rowNumber;
 
           // applying transformations:
           Matrix.setIdentityM(modelMatrix, 0);
@@ -800,7 +800,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 
-      windowBackground.shader.setVec4("vColor", new float[]{1.0f, 1.0f, 1.0f, 1.0f});
+      windowBackground.shader.setVec4("vColor", new float[]{0.0f, 0.0f, 0.0f, 1.0f});
       windowBackground.shader.setMat4("uMVPMatrix", uMVPMatrix);
 
       render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
