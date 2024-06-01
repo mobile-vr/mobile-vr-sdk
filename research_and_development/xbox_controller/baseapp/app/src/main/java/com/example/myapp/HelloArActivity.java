@@ -43,6 +43,9 @@ import static com.mobilevr.utils.GeometryUtils.getFingerQuaternion;
 import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
 import com.mobilevr.handstracking.HandsTrackingThread;
 import com.mobilevr.designobjects.VirtualObject;
+import com.mobilevr.log.BitmapData;
+import com.mobilevr.log.VirtualLogWindow;
+import com.mobilevr.modified.samplerender.Texture;
 import com.mobilevr.modified.samplerender.arcore.BackgroundRenderer;
 import com.mobilevr.modified.samplerender.Framebuffer;
 import com.mobilevr.modified.samplerender.Mesh;
@@ -50,7 +53,10 @@ import com.mobilevr.modified.samplerender.SampleRender;
 import com.mobilevr.modified.samplerender.Shader;
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
 import android.media.Image;
+import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
@@ -85,10 +91,17 @@ import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationExceptio
 import com.google.mediapipe.formats.proto.LandmarkProto;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
+  static {
+    System.loadLibrary("myTargetd");
+  }
   private static final String TAG = "mobilevr";
   private static final float Z_NEAR = 0.1f;
   private static final float Z_FAR = 100f;
@@ -142,6 +155,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // Cube
   private Mesh cubeObjectMesh;
   private Shader cubeObjectShader;
+  private Map<Character, VirtualObject> fontMap = new HashMap<>();
+  private VirtualLogWindow virtualLogWindow;
+  private String myDebugString;
+  private boolean debugScreenActivated;
+  private VirtualObject windowBackground;
 
   // ======================================================================================= //
   //                                        keep below
@@ -175,10 +193,17 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
     // DEBUG PARAMETERS
     drawPointer = true;
-    fixCamera = true;
+    fixCamera = false;
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
+
+    // ======================================================================================= //
+    //                                        keep above
+    // ======================================================================================= //
+
+    // Add your code here
+    debugScreenActivated = true;
 
     // Controller
     // Get the InputManager
@@ -187,9 +212,16 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     // Check if InputManager is available
     if (myInputManager == null) {
       // InputManager is not available on this device
-      throw new Error("InputManager not available");
+      //throw new Error("InputManager not available");
     }
     myGameControllerManager = new GameControllerManager(myInputManager);
+
+    myGameControllerManager.startListening();
+
+
+    // ======================================================================================= //
+    //                                        keep below
+    // ======================================================================================= //
   }
 
   /**
@@ -459,6 +491,141 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         Log.e(TAG, "Failed to read a required asset file", e);
       }
 
+
+
+      // debug screen
+      if (debugScreenActivated) {
+        try {
+          // Open an InputStream to the font file in assets
+          AssetManager assetManager = getAssets();
+          InputStream inputStream = assetManager.open("fonts/16020_FUTURAM.ttf");
+
+          // Read the font file into a byte array
+          byte[] fontData = new byte[inputStream.available()]; // deallocate after calling FT_Done_Face
+          inputStream.read(fontData);
+          inputStream.close();
+
+          // Pass the byte array to the native method
+          long fontPtr = loadFontFromAssets(fontData);
+          Log.i(TAG, String.valueOf(fontPtr));
+
+          int numGlyphs = get_num_glyphs(fontPtr);
+          Log.i(TAG, "numGlyphs: " + numGlyphs);
+
+          float width = 0.4f;
+          float height = 0.4f;
+          float zPos = -0.5f;
+          virtualLogWindow = new VirtualLogWindow(
+                  10,
+                  10,
+                  zPos,
+                  width,
+                  height);
+
+          // For each wanted character create a texture in OpenGL, 33 is '!'
+          for (char c = 33; c < 127; c++) {
+
+            //Log.i(TAG, "c : " + (long) c + " hexa : " + 0x0065);
+            BitmapData characterBitmap = getCharacterBitmap(fontPtr, (long) c); // 50x50 pixels used
+            Log.i(TAG, "w and h: " + characterBitmap.getWidth() + " ; " + characterBitmap.getHeight());
+
+            // Create Bitmap from pixel data
+            Bitmap bitmap = Bitmap.createBitmap(characterBitmap.getWidth(),
+                    characterBitmap.getHeight(), Bitmap.Config.ALPHA_8);
+            ByteBuffer glyphBuffer = ByteBuffer.wrap(characterBitmap.getData());
+            bitmap.copyPixelsFromBuffer(glyphBuffer);
+            glyphBuffer.rewind();
+
+            // square Texture init
+            Texture squareTexture = Texture.createFromBitmap(
+                    render,
+                    glyphBuffer,
+                    Texture.WrapMode.CLAMP_TO_EDGE,
+                    GLES30.GL_LUMINANCE, //GL_RED, // GL_RED,GL_ALPHA
+                    characterBitmap.getWidth(),
+                    characterBitmap.getHeight());
+
+            // Create a square
+            //size of character
+            float charWidth = (characterBitmap.getWidth() / 50.0f) * virtualLogWindow.getCharLength();
+            float charHeight = (characterBitmap.getHeight() / 50.0f) * virtualLogWindow.getCharHeight();
+
+            float[] squareCoords = { // counterclock order
+                    // Front face, starting from bottom left, clockwise order
+                    -charWidth / 2, -charHeight / 2, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+                    -charWidth / 2, charHeight / 2, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                    charWidth / 2, charHeight / 2, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                    charWidth / 2, -charHeight / 2, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f
+            };
+            int[] squareIndex = {
+                    // Front face
+                    0, 1, 2,
+                    0, 2, 3
+            };
+            COORDS_PER_VERTEX = 8; // 3 for position, 3 for color, 2 for texture coordinates
+            vertexShaderFileName = "shaders/textureShader.vert";
+            fragmentShaderFileName = "shaders/textureShader.frag";
+            mode = "texture";
+            VirtualObject quad = new VirtualObject(
+                    render,
+                    COORDS_PER_VERTEX,
+                    squareCoords,
+                    squareIndex,
+                    vertexShaderFileName,
+                    fragmentShaderFileName,
+                    null,
+                    mode);
+
+            // apply the texture to the square
+            quad.shader.setTexture("ourTexture", squareTexture);
+
+            fontMap.put(c, quad);
+          }
+
+          // White background
+          width += 0.1f;
+          height += 0.1f;
+          float[] squareCoords = { // counterclock order
+                  // Front face, starting from bottom left, clockwise order
+                  - width / 2, -height / 2, zPos - 0.01f,
+                  -width / 2, height / 2, zPos - 0.01f,
+                  width / 2, height / 2, zPos - 0.01f,
+                  width / 2, -height / 2, zPos - 0.01f
+          };
+          int[] squareIndex = {
+                  // Front face
+                  0, 1, 2,
+                  0, 2, 3
+          };
+          COORDS_PER_VERTEX = 3; // 3 for position, 3 for color, 2 for texture coordinates
+          vertexShaderFileName = "shaders/simpleShader.vert";
+          fragmentShaderFileName = "shaders/simpleShader.frag";
+          mode = "simple";
+          windowBackground = new VirtualObject(
+                  render,
+                  COORDS_PER_VERTEX,
+                  squareCoords,
+                  squareIndex,
+                  vertexShaderFileName,
+                  fragmentShaderFileName,
+                  null,
+                  mode);
+
+          // Use the fontPtr as needed
+        } catch (IOException e) {
+          e.printStackTrace();
+          Log.e(TAG, e.toString());
+        }
+      }
+
+      myDebugString = "Hello I am Mister glip glop! And I would like to tell everyone" +
+              "that I love eating ice cream. Seriously it is the best sh*t I've ever" +
+              "eaten! Please provide me like 1024568799999999999999999999999999999994545454" +
+              "545454 354364343435 453 435435 4534 35453434534 3543543543453453 453453" +
+              "ice creams so that I can eat that all the time! Thank you all bisouuus! <3";
+
+
+
       // ======================================================================================= //
       //                                        keep below
       // ======================================================================================= //
@@ -631,7 +798,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // For example here's a CUBE
       // applying transformations:
       Matrix.setIdentityM(modelMatrix, 0);
-      Matrix.translateM(modelMatrix, 0, 0.0f, 0f, -2.0f);
+      Matrix.translateM(modelMatrix, 0, -2.0f, 0.0f, .0f);
       Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
@@ -643,9 +810,71 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 0, x0, y0, u, v);
       render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 1, x0, y0, u, v);
 
+      // draw debug window background
+
+      // applying transformations:
+      Matrix.setIdentityM(modelMatrix, 0);
+      //Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
+      //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
+      //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+      Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+
+      windowBackground.shader.setVec4("vColor", new float[]{0.0f, 0.0f, 0.0f, 1.0f});
+      windowBackground.shader.setMat4("uMVPMatrix", uMVPMatrix);
+
+      render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+      render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+
+      // debug string
+      virtualLogWindow.setString(myDebugString);
+
+      // init translation vector
+      float tXInit = - virtualLogWindow.getWidth() / 2;
+      float tYInit = virtualLogWindow.getHeight() / 2;
+      float tZ = virtualLogWindow.getZPos();
+      int rowNumber = -1;
+      float verticalPadding = 0.005f;
+
+      // For each character in the string
+      for (int i=0; i < virtualLogWindow.getString().length() ; i++ ) {
+        char c = virtualLogWindow.getString().charAt(i);
+
+        // change the position of character
+        if (i % virtualLogWindow.getLineMaxChar() == 0) {
+          Log.i(TAG, "i : " + i + " rowNumber = " + rowNumber);
+          rowNumber += 1;
+        }
+
+        // if the character is a space, leave a space
+        if (c != ' ') {
+
+          float tX = tXInit + virtualLogWindow.getCharLength() * (i % virtualLogWindow.getLineMaxChar());
+          float tY = tYInit - virtualLogWindow.getCharHeight() * rowNumber - verticalPadding * rowNumber;
+          Log.i(TAG, "tY : " + tY);
 
 
+          // applying transformations:
+          Matrix.setIdentityM(modelMatrix, 0);
+          Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
+          //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
+          //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+          Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 
+          // Setting the position, scale and orientation to the square
+          VirtualObject anyChar = fontMap.get(c);
+
+          if (anyChar != null) {
+
+            anyChar.shader.setMat4("uMVPMatrix", uMVPMatrix);
+            // drawing the square
+            render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+            render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+
+          } else {
+            throw new Error("virtualObject for this char is null");
+          }
+        }
+      }
 
 
 
@@ -735,4 +964,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //session.setCameraConfig(cameraConfig);
       session.configure(config);
     }
+
+  public native String stringFromJNI();
+  public native long loadFont(String fontPath);
+  public native long loadFontFromAssets(byte[] fontData);
+  public native int get_num_glyphs(long face);
+  public native BitmapData getCharacterBitmap(long face, long charCode);
 }
