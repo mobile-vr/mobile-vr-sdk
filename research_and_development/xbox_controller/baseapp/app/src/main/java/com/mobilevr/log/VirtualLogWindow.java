@@ -1,6 +1,7 @@
 package com.mobilevr.log;
 
 import com.mobilevr.utils.BoundedStringBuffer;
+import com.mobilevr.utils.StringArrayBuffer;
 
 public class VirtualLogWindow {
     //private String logString;
@@ -9,7 +10,8 @@ public class VirtualLogWindow {
     private float charLength, charHeight;
     private float width, height;
     public float zPos;
-    private BoundedStringBuffer boundedStringBuffer;
+    //private BoundedStringBuffer boundedStringBuffer;
+    public StringArrayBuffer stringArrayBuffer;
 
     public VirtualLogWindow(int myLineMaxChar, int myRowsMax, float myZPos, float myWidth, float myHeight) {
         lineMaxChar = myLineMaxChar;
@@ -23,11 +25,12 @@ public class VirtualLogWindow {
         charLength = width / lineMaxChar;
         charHeight = height / rowsMax;
 
-        boundedStringBuffer = new BoundedStringBuffer(maxChar);
+        //boundedStringBuffer = new BoundedStringBuffer(maxChar);
+        stringArrayBuffer = new StringArrayBuffer(rowsMax - 1, lineMaxChar);
 
     }
 
-    public void setString(String myString) {
+    public void add(String myString) {
         // reverse the string then setLength to cut the old part
         /*logString = new StringBuilder(myString)
                 .reverse()
@@ -41,11 +44,14 @@ public class VirtualLogWindow {
         logString = new StringBuilder(logString)
                 .reverse()
                 .toString();*/
-        boundedStringBuffer.add(myString);
+
+        //boundedStringBuffer.add(myString);
+        stringArrayBuffer.add(myString);
     }
 
-    public String getString() {
-        return boundedStringBuffer.getBuffer();
+    public String getString(int i) {
+        //return boundedStringBuffer.getBuffer();
+        return stringArrayBuffer.get(i);
     }
 
     public int getMaxChar() {

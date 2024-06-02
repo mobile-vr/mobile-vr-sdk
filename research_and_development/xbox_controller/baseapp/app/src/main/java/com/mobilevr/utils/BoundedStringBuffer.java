@@ -10,7 +10,7 @@ public class BoundedStringBuffer {
     }
 
     public synchronized void add(String str) {
-        buffer.append(str);
+        buffer.append("/n").append(str);
         ensureCapacity();
     }
 

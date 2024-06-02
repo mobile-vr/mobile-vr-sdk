@@ -162,6 +162,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   private String myDebugString="";
   private boolean debugScreenActivated;
   private VirtualObject windowBackground;
+  private boolean rowAdded=false;
 
   // ======================================================================================= //
   //                                        keep below
@@ -207,6 +208,17 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     // Add your code here
     debugScreenActivated = true;
 
+    // Init virtualLogWindow
+    float width = 1.5f;
+    float height = 1.0f;
+    float zPos = -2.0f;
+    virtualLogWindow = new VirtualLogWindow(
+            40,
+            25,
+            zPos,
+            width,
+            height);
+
     // Controller
     // Get the InputManager
     myInputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
@@ -217,7 +229,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //throw new Error("InputManager not available");
       myDebugString += "InputManager not available";
     }
-    myGameControllerManager = new GameControllerManager(myInputManager, 1000);
+    myGameControllerManager = new GameControllerManager(myInputManager,
+            /*1000,*/
+            virtualLogWindow.stringArrayBuffer);
 
     myGameControllerManager.startListening();
 
@@ -537,15 +551,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
           int numGlyphs = get_num_glyphs(fontPtr);
           Log.i(TAG, "numGlyphs: " + numGlyphs);
 
-          float width = 0.7f;
-          float height = 1.0f;
-          float zPos = -1.5f;
-          virtualLogWindow = new VirtualLogWindow(
-                  20,
-                  25,
-                  zPos,
-                  width,
-                  height);
+
 
           // For each wanted character create a texture in OpenGL, 33 is '!'
           for (char c = 33; c < 127; c++) {
@@ -608,8 +614,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
           }
 
           // White background
-          width += 0.1f;
-          height += 0.1f;
+          float width = virtualLogWindow.getWidth() + 0.3f;
+          float height = virtualLogWindow.getHeight() + 0.3f;
+          float zPos = virtualLogWindow.getZPos();
           float[] squareCoords = { // counterclock order
                   // Front face, starting from bottom left, clockwise order
                   - width / 2, -height / 2, zPos - 0.01f,
@@ -810,7 +817,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // ========================================================================================= //
 
       // Implement the drawing behavior of your game here.
-      virtualLogWindow.setString(myGameControllerManager.debugString.getBuffer());
+      /*for (int i=0; i < myGameControllerManager.stringArrayBuffer.getCurrentSize(); i++) {
+        virtualLogWindow.add(myGameControllerManager.stringArrayBuffer.get(i));
+      }*/
 
       // For example here's a CUBE
       // applying transformations:
@@ -847,23 +856,78 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       float tXInit = - virtualLogWindow.getWidth() / 2;
       float tYInit = virtualLogWindow.getHeight() / 2;
       float tZ = virtualLogWindow.getZPos();
-      int rowNumber = -1;
+      //int rowNumber = -1;
       float verticalPadding = 0.005f;
+      //int columnNumber = -1;
+
+      for (int i=0 ; i < virtualLogWindow.stringArrayBuffer.getCurrentSize() ; i ++) {
+        String currentString = virtualLogWindow.getString(i);
+        for (int j=0 ; j < currentString.length() ; j++) {
+          char c = currentString.charAt(j);
+
+          if (c != ' ') {
+
+            float tX = tXInit + virtualLogWindow.getCharLength() * j;
+            float tY = tYInit - virtualLogWindow.getCharHeight() * i - verticalPadding * i;
+            //Log.i(TAG, "tY : " + tY);
+
+
+            // applying transformations:
+            Matrix.setIdentityM(modelMatrix, 0);
+            Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
+            //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
+            //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+            Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+
+            // Setting the position, scale and orientation to the square
+            VirtualObject anyChar = fontMap.get(c);
+
+            if (anyChar != null) {
+
+              anyChar.shader.setMat4("uMVPMatrix", uMVPMatrix);
+              // drawing the square
+              render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+              render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+
+            } else {
+              throw new Error("virtualObject for this char is null");
+            }
+          }
+        }
+      }
 
       // For each character in the string
-      for (int i=0; i < virtualLogWindow.getString().length() ; i++ ) {
+      /*for (int i=0; i < virtualLogWindow.getString().length() ; i++ ) {
+
         char c = virtualLogWindow.getString().charAt(i);
 
         // change the position of character
-        if (i % virtualLogWindow.getLineMaxChar() == 0) {
+        if (i < virtualLogWindow.getString().length() - 1) {
+          char c2 = virtualLogWindow.getString().charAt(i + 1);
+          if (("" + c + c2).equals("/n")) {
+            rowNumber += 1;
+            columnNumber = 0;
+            rowAdded = true;
+          } else {
+            rowAdded = false;
+          }
+        } else {
+          rowAdded = false;
+        }
+
+        if (i % virtualLogWindow.getLineMaxChar() == 0 && !rowAdded) {
           //Log.i(TAG, "i : " + i + " rowNumber = " + rowNumber);
           rowNumber += 1;
+          columnNumber = 0;
         }
+
+
+
 
         // if the character is a space, leave a space
         if (c != ' ') {
 
-          float tX = tXInit + virtualLogWindow.getCharLength() * (i % virtualLogWindow.getLineMaxChar());
+          float tX = tXInit + virtualLogWindow.getCharLength() * columnNumber;
           float tY = tYInit - virtualLogWindow.getCharHeight() * rowNumber - verticalPadding * rowNumber;
           //Log.i(TAG, "tY : " + tY);
 
@@ -889,7 +953,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
             throw new Error("virtualObject for this char is null");
           }
         }
-      }
+
+        columnNumber += 1;
+      }*/
 
 
 

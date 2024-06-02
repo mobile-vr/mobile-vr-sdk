@@ -7,11 +7,13 @@ import android.view.MotionEvent;
 import android.view.InputDevice;
 
 import com.mobilevr.utils.BoundedStringBuffer;
+import com.mobilevr.utils.StringArrayBuffer;
 
 public class GameControllerManager implements InputManager.InputDeviceListener {
     private String TAG="mobilevr";
     private final InputManager mInputManager;
-    public BoundedStringBuffer debugString;
+    //public BoundedStringBuffer debugString;
+    public StringArrayBuffer stringArrayBuffer;
     // keycode :
     /*
         A : 96
@@ -35,16 +37,18 @@ public class GameControllerManager implements InputManager.InputDeviceListener {
         AXIS_HAT_Y : (bottom to top) -1 to 1
      */
 
-    public GameControllerManager(InputManager inputManager, int maxChar) {
+    public GameControllerManager(InputManager inputManager, /*int maxChar,*/ StringArrayBuffer myStringArrayBuffer) {
 
         mInputManager = inputManager;
-        debugString = new BoundedStringBuffer(maxChar);
+        //debugString = new BoundedStringBuffer(maxChar);
+        //stringArrayBuffer = new StringArrayBuffer(100, maxChar);
+        stringArrayBuffer = myStringArrayBuffer;
     }
 
     public void startListening() {
 
         mInputManager.registerInputDeviceListener(this, null);
-        debugString.add(" // start listening");
+        stringArrayBuffer.add("start listening");
     }
 
     public void stopListening() {
@@ -56,34 +60,34 @@ public class GameControllerManager implements InputManager.InputDeviceListener {
     public void onInputDeviceAdded(int deviceId) {
         // Votre logique pour gérer les périphériques ajoutés
         Log.i(TAG, "New device added, ID: " + deviceId);
-        debugString.add(" // New device added, ID: " + deviceId);
+        stringArrayBuffer.add("New device added, ID: " + deviceId);
     }
 
     @Override
     public void onInputDeviceRemoved(int deviceId) {
         // Votre logique pour gérer les périphériques supprimés
         Log.i(TAG, "Device removed ID: " + deviceId);
-        debugString.add(" // Device removed ID: " + deviceId);
+        stringArrayBuffer.add("Device removed ID: " + deviceId);
     }
 
     @Override
     public void onInputDeviceChanged(int deviceId) {
         // Votre logique pour gérer les périphériques modifiés
         Log.i(TAG, "Device modified, ID: " + deviceId);
-        debugString.add(" // Device modified, ID: " + deviceId);
+        stringArrayBuffer.add("Device modified, ID: " + deviceId);
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         // Votre logique pour gérer les touches enfoncées
         Log.i(TAG, "Key down, keyCode: " + keyCode + " ; keyEvent : " + event);
-        debugString.add(" // Key down, keyCode: " + keyCode);// + " ; keyEvent : " + event);
+        stringArrayBuffer.add("Key down, keyCode: " + keyCode);// + " ; keyEvent : " + event);
         return true;
     }
 
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         // Votre logique pour gérer les touches relâchées
         Log.i(TAG, "Key up, keyCode: " + keyCode + " ; keyEvent : " + event);
-        debugString.add(" // Key up, keyCode: " + keyCode);// + " ; keyEvent : " + event);
+        stringArrayBuffer.add("Key up, keyCode: " + keyCode);// + " ; keyEvent : " + event);
         return true;
     }
 
@@ -109,7 +113,8 @@ public class GameControllerManager implements InputManager.InputDeviceListener {
                 String axisName = MotionEvent.axisToString(axis);
 
                 //Log.d("JoystickInput", "Joystick: " + joystickName + ", Axis: " + axisName + ", Value: " + value);
-                debugString.add(" // Axis: " + axisName + ", Value: " + value);
+                stringArrayBuffer.add("");
+                stringArrayBuffer.add("Axis: " + axisName + ", Value: " + value);
             }
         }
     }
