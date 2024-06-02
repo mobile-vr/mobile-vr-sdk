@@ -19,7 +19,7 @@ Software Development Kit to build XR apps on Android.<br>
 | Rendering (OpenGL) | Developped |
 | Splitted screen like VR | Developped |
 | Change screen sizes | Developped |
-| Joystick support | |
+| Joystick support | Developped |
 | Multiplayer | |
 | Vocal command | |
 | Video streaming | |
