@@ -1,12 +1,21 @@
 package com.mobilevr.utils;
 
+/**
+ * Buffer holding String[].
+ * Useful to hold log Strings for the virtual log window.
+ */
 public class StringArrayBuffer {
     private String[] buffer;
     public int size;
     private int currentIndex;
     public int maxCapacity;
 
-    // Constructor to initialize the buffer with a given size and capacity
+    /**
+     * Constructor to initialize the buffer with a given size and capacity
+     *
+     * @param size
+     * @param maxCapacity
+     */
     public StringArrayBuffer(int size, int maxCapacity) {
         this.size = size;
         this.maxCapacity = maxCapacity;
@@ -14,7 +23,9 @@ public class StringArrayBuffer {
         this.currentIndex = 0;
     }
 
-    // Method to add a string to the buffer with overflow handling
+    /**
+     * Method to add a string to the buffer with overflow handling
+     */
     public void add(String str) {
         while (str.length() > maxCapacity) {
             if (currentIndex < size) {
@@ -41,7 +52,9 @@ public class StringArrayBuffer {
         str = null;
     }
 
-    // Method to ensure the buffer doesn't exceed its capacity
+    /**
+     * Method to ensure the buffer doesn't exceed its capacity
+     */
     private void ensureCapacity() {
         if (currentIndex >= size) {
             // Shift elements left to make space
@@ -51,7 +64,12 @@ public class StringArrayBuffer {
         }
     }
 
-    // Method to retrieve a string at a specific index
+    /**
+     * Method to retrieve a string at a specific index
+     *
+     * @param index
+     * @return
+     */
     public String get(int index) {
         if (index >= 0 && index < currentIndex) {
             return buffer[index];
@@ -60,12 +78,19 @@ public class StringArrayBuffer {
         }
     }
 
-    // Method to clear the buffer
+    /**
+     * Method to clear the buffer
+     */
     public void clear() {
         buffer = new String[size];
         currentIndex = 0;
     }
 
+    /**
+     * Get the current size of the string buffer
+     *
+     * @return
+     */
     public int getCurrentSize() {
         return currentIndex;
     }
