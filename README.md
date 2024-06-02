@@ -1,5 +1,6 @@
 ## Message to visitors
-Repo is public but wiki isn’t finished.<br>
+Welcome to this repo!
+Contribute to help building the cheapest VR headset.
 Advice on good practices is welcome.
 
 ## Tested devices
