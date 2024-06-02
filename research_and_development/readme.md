@@ -17,7 +17,10 @@ Callaborate to develop new features.
 ## Folders presentation
 Each folder contains an app demonstrating a use case of the SDK.<br>
 
+**blender_object** - How to use obj_shader<br>
 **colored_triangle** - How to use shaders to color a triangle.<br>
 **cubemap** - How to use a cubemap image to get a 360 background.<br>
+**joystick_controller** - How to use the joystick inputs.<br>
 **texture_square** - How to add a texture to a square object.<br>
 **touch_triangle** - How to change the color of a triangle using finger and thumb.<br>
+**virtual_log** - How to display a virtual log window.<br>
