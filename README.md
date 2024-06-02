@@ -43,7 +43,7 @@ demonstrating the implementation of specific features or tips with shaders.<br>
 ARCore package with the modified classes, a shader scripts collection.
 
 ## Documentation
-[wiki](mobile-vr-sdk)
+[wiki](https://github.com/mobile-vr/mobile-vr-sdk/wiki)
 
 ## How to get started with building your app?
 Download the release of the baseapp on your computer and start adding your<br>
