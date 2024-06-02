@@ -1,4 +1,4 @@
-![screenshot](/screenshots/xbox_controller_screenshot.jpg)
+![screenshot](/screenshots/joystick_controller_screenshot.jpg)
 
 ## Why this baseapp?
 This app is provided so that you can connect your controller, for example xbox360 controller to your mobile, and see the key inputs while being in VR.
