@@ -8,10 +8,14 @@ import android.view.InputDevice;
 
 import com.mobilevr.utils.StringArrayBuffer;
 
+/**
+ * This class is used to start listening to input devices like a joystick controller.
+ * It logs information about the keys being pushed or generic motion being moved, into
+ * the provided StringArrayBuffer.
+ */
 public class GameControllerManager implements InputManager.InputDeviceListener {
     private String TAG="mobilevr";
     private final InputManager mInputManager;
-    //public BoundedStringBuffer debugString;
     public StringArrayBuffer stringArrayBuffer;
     // keycode :
     /*
@@ -39,61 +43,50 @@ public class GameControllerManager implements InputManager.InputDeviceListener {
     public GameControllerManager(InputManager inputManager, /*int maxChar,*/ StringArrayBuffer myStringArrayBuffer) {
 
         mInputManager = inputManager;
-        //debugString = new BoundedStringBuffer(maxChar);
-        //stringArrayBuffer = new StringArrayBuffer(100, maxChar);
         stringArrayBuffer = myStringArrayBuffer;
     }
 
     public void startListening() {
-
         mInputManager.registerInputDeviceListener(this, null);
         stringArrayBuffer.add("start listening");
     }
 
     public void stopListening() {
-
         mInputManager.unregisterInputDeviceListener(this);
     }
 
     @Override
     public void onInputDeviceAdded(int deviceId) {
-        // Votre logique pour gérer les périphériques ajoutés
         Log.i(TAG, "New device added, ID: " + deviceId);
         stringArrayBuffer.add("New device added, ID: " + deviceId);
     }
 
     @Override
     public void onInputDeviceRemoved(int deviceId) {
-        // Votre logique pour gérer les périphériques supprimés
         Log.i(TAG, "Device removed ID: " + deviceId);
         stringArrayBuffer.add("Device removed ID: " + deviceId);
     }
 
     @Override
     public void onInputDeviceChanged(int deviceId) {
-        // Votre logique pour gérer les périphériques modifiés
         Log.i(TAG, "Device modified, ID: " + deviceId);
         stringArrayBuffer.add("Device modified, ID: " + deviceId);
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // Votre logique pour gérer les touches enfoncées
         Log.i(TAG, "Key down, keyCode: " + keyCode + " ; keyEvent : " + event);
-        stringArrayBuffer.add("Key down, keyCode: " + keyCode);// + " ; keyEvent : " + event);
+        stringArrayBuffer.add("Key down, keyCode: " + keyCode);
         return true;
     }
 
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        // Votre logique pour gérer les touches relâchées
         Log.i(TAG, "Key up, keyCode: " + keyCode + " ; keyEvent : " + event);
-        stringArrayBuffer.add("Key up, keyCode: " + keyCode);// + " ; keyEvent : " + event);
+        stringArrayBuffer.add("Key up, keyCode: " + keyCode);
         return true;
     }
 
     public boolean onGenericMotionEvent(MotionEvent event) {
-        // Votre logique pour gérer les événements de mouvement génériques (analogiques)
         Log.i(TAG, "Generic motion Event: " + event);
-        //debugString.add(" // Generic motion Event: " + event);
         handleJoystickInput(event);
         return true;
     }
@@ -105,14 +98,11 @@ public class GameControllerManager implements InputManager.InputDeviceListener {
 
         // Process axis movements (e.g., joystick positions)
         if (action == MotionEvent.ACTION_MOVE) {
+            stringArrayBuffer.add("");
             for (InputDevice.MotionRange range : device.getMotionRanges()) {
                 int axis = range.getAxis();
                 float value = event.getAxisValue(axis, pointerIndex);
-
                 String axisName = MotionEvent.axisToString(axis);
-
-                //Log.d("JoystickInput", "Joystick: " + joystickName + ", Axis: " + axisName + ", Value: " + value);
-                stringArrayBuffer.add("");
                 stringArrayBuffer.add("Axis: " + axisName + ", Value: " + value);
             }
         }

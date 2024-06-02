@@ -16,7 +16,7 @@ To use a controller with your phone check out this section.
 - joystick controller
 
 ## What does it do?
-- Display a cube
+- Display black window terminal, with the tracked user inputs.
 - Display the pointer at the top of the finger
 - Configured for one hand
 
