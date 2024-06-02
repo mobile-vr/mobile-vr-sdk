@@ -5,6 +5,7 @@ Advice on good practices is welcome.
 
 ## Tested devices
 - Oppo A94
+- Redmi note 8
 
 ## What is mobile-vr-sdk for Android?
 Software Development Kit to build XR apps on Android.<br>
