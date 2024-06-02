@@ -1,6 +1,6 @@
 ## Message to visitors
-Welcome to this repo!
-Contribute to help building the cheapest VR headset.
+Welcome to this repo!<br>
+Contribute to help building the cheapest VR headset.<br>
 Advice on good practices is welcome.
 
 ## Tested devices
