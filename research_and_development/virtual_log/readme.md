@@ -1,4 +1,4 @@
-![screenshot](/screenshots/baseapp_screenshot.jpg)
+![screenshot](/screenshots/virtual_log_screenshot.jpg)
 
 ## Why this baseapp?
 I need a virtual log to debug while being in VR, or while adb isn't available.<br>

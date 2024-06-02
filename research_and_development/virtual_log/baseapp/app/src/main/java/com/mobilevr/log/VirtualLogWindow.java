@@ -1,12 +1,17 @@
 package com.mobilevr.log;
 
+import com.mobilevr.utils.StringArrayBuffer;
+
+/**
+ * Class to hold information about the virtual log window, and the StringArrayBuffer.
+ */
 public class VirtualLogWindow {
-    private String logString;
     private int lineMaxChar, rowsMax;
     private int maxChar;
     private float charLength, charHeight;
     private float width, height;
     public float zPos;
+    public StringArrayBuffer stringArrayBuffer;
 
     public VirtualLogWindow(int myLineMaxChar, int myRowsMax, float myZPos, float myWidth, float myHeight) {
         lineMaxChar = myLineMaxChar;
@@ -20,26 +25,27 @@ public class VirtualLogWindow {
         charLength = width / lineMaxChar;
         charHeight = height / rowsMax;
 
+        stringArrayBuffer = new StringArrayBuffer(rowsMax - 1, lineMaxChar);
+
     }
 
-    public void setString(String myString) {
-        // reverse the string then setLength to cut the old part
-        logString = new StringBuilder(myString)
-                .reverse()
-                .toString();
-
-        if (logString.length() > maxChar) {
-            logString = logString.substring(0, maxChar);
-        }
-
-        // reverse back the string
-        logString = new StringBuilder(logString)
-                .reverse()
-                .toString();
+    /**
+     * This method adds a new string to the StringArrayBuffer.
+     *
+     * @param myString
+     */
+    public void add(String myString) {
+        stringArrayBuffer.add(myString);
     }
 
-    public String getString() {
-        return logString;
+    /**
+     * Get the String at line i.
+     *
+     * @param i
+     * @return
+     */
+    public String getString(int i) {
+        return stringArrayBuffer.get(i);
     }
 
     public int getMaxChar() {
