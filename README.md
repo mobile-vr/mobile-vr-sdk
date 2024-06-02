@@ -71,6 +71,7 @@ and new classes for this sdk.
 - arcore-android-sdk
 - mediapipe
 - obj
+- freetype
 
 Licenses: [Licenses\external_dependencies](external_licenses)
 
