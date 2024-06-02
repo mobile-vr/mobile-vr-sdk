@@ -120,6 +120,8 @@ public class Texture implements Closeable {
   public Texture(SampleRender render, Target target, WrapMode wrapMode, boolean useMipmaps) {
     this.target = target;
 
+    GLES30.glPixelStorei(GLES30.GL_UNPACK_ALIGNMENT, 1); // GL_RED texture
+
     GLES30.glGenTextures(1, textureId, 0);
     GLError.maybeThrowGLException("Texture creation failed", "glGenTextures");
 
@@ -189,6 +191,42 @@ public class Texture implements Closeable {
     return texture;
   }
 
+  /** Create a texture from the given bitmap. */
+  public static Texture createFromBitmap(
+          SampleRender render, ByteBuffer buffer, WrapMode wrapMode, int colorFormat, int width, int height) {
+    Texture texture = new Texture(render, Target.TEXTURE_2D, wrapMode);
+    try {
+      /*Log.i(TAG, "byte count: " + bitmap.getByteCount());
+      ByteBuffer buffer = ByteBuffer.allocateDirect(bitmap.getByteCount());
+      bitmap.copyPixelsToBuffer(buffer);
+      buffer.rewind();*/
+
+      GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, texture.getTextureId());
+      GLError.maybeThrowGLException("Failed to bind texture", "glBindTexture");
+      GLES30.glTexImage2D(
+              GLES30.GL_TEXTURE_2D,
+              /*level=*/ 0,
+              colorFormat,
+              width,
+              height,
+              /*border=*/ 0,
+              colorFormat,
+              GLES30.GL_UNSIGNED_BYTE,
+              buffer);
+      GLError.maybeThrowGLException("Failed to populate texture data", "glTexImage2D");
+      GLES30.glGenerateMipmap(GLES30.GL_TEXTURE_2D);
+      GLError.maybeThrowGLException("Failed to generate mipmaps", "glGenerateMipmap");
+    } catch (Throwable t) {
+      texture.close();
+      throw t;
+    } /*finally {
+      if (bitmap != null) {
+        bitmap.recycle();
+      }
+    }*/
+    return texture;
+  }
+
   @Override
   public void close() {
     if (textureId[0] != 0) {
@@ -208,7 +246,7 @@ public class Texture implements Closeable {
     return target;
   }
 
-  private static Bitmap convertBitmapToConfig(Bitmap bitmap, Bitmap.Config config) {
+  public static Bitmap convertBitmapToConfig(Bitmap bitmap, Bitmap.Config config) {
     // We use this method instead of BitmapFactory.Options.outConfig to support a minimum of Android
     // API level 24.
     if (bitmap.getConfig() == config) {
