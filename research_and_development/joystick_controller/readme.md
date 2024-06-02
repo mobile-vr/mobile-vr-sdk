@@ -1,11 +1,11 @@
-![screenshot](/screenshots/baseapp_screenshot.jpg)
+![screenshot](/screenshots/xbox_controller_screenshot.jpg)
 
 ## Why this baseapp?
-The baseapp is the starting point before developping a new feature, or creating<br>
-a new VR app. It contains all the currently implemented features via the<br>
-com.mobilevr package. It also contains guidelines (see the comments "keep<br>
-above" and "keep below" sections) in the HelloArActivity.java to help novices<br>
-understand how to implement their first objects.
+This app is provided so that you can connect your controller, for example xbox360 controller to your mobile, and see the key inputs while being in VR.
+On the black window you can see controller data like its AXIS_RZ value, or that the button button A (keycode 96) is being pushed and released.
+
+## Set up
+To use a controller with your phone check out this section.
 
 ## Features
 - 6-dof (ARCore)
@@ -13,6 +13,7 @@ understand how to implement their first objects.
 - Rendering (OpenGL)
 - Splitted screen like VR
 - Change screens sizes
+- joystick controller
 
 ## What does it do?
 - Display a cube

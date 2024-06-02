@@ -1,6 +1,5 @@
 package com.mobilevr.log;
 
-import com.mobilevr.utils.BoundedStringBuffer;
 import com.mobilevr.utils.StringArrayBuffer;
 
 public class VirtualLogWindow {

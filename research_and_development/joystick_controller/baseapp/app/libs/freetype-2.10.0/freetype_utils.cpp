@@ -16,30 +16,6 @@ FT_Library initFreeTypeLib() {
     }
 }
 
-extern "C"
-JNIEXPORT jlong JNICALL
-Java_com_example_myapp_HelloArActivity_loadFont(JNIEnv *env, jobject /*this*/,
-                                                       jstring fontPath) {
-    const char* font_path = env->GetStringUTFChars(fontPath, nullptr);
-
-    FT_Library library;
-    FT_Error error = FT_Init_FreeType(&library);
-    if ( error )
-    {
-        __android_log_print(ANDROID_LOG_ERROR, "glyph",
-                            "an error occurred during library initialization");
-    }
-
-    FT_Face face;
-    if (FT_Init_FreeType(&library) || FT_New_Face(library, font_path,
-                                                  0, &face)) {
-        // Error handling
-        return 0;
-    }
-    env->ReleaseStringUTFChars(fontPath, font_path);
-    return reinterpret_cast<jlong>(face);
-}
-
 extern "C" JNIEXPORT jlong JNICALL
 Java_com_example_myapp_HelloArActivity_loadFontFromAssets(JNIEnv *env,
                                                                  jobject /*this*/,

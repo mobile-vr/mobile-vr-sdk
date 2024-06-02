@@ -6,7 +6,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.InputDevice;
 
-import com.mobilevr.utils.BoundedStringBuffer;
 import com.mobilevr.utils.StringArrayBuffer;
 
 public class GameControllerManager implements InputManager.InputDeviceListener {
