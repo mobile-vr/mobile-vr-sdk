@@ -1,3 +1,5 @@
+Based on sdk-v1.1.0
+
 ![screenshot](/screenshots/virtual_log_screenshot.jpg)
 
 ## Why this baseapp?

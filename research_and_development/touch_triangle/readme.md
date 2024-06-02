@@ -1,3 +1,5 @@
+Based on sdk-v1.0.1
+
 ![screenshot](/screenshots/touch_triangle_screenshot.jpg)
 
 ## What does it do?
