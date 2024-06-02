@@ -151,7 +151,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // Implement your variables here
   private Map<Character, VirtualObject> fontMap = new HashMap<>();
   private VirtualLogWindow virtualLogWindow;
-  private String myDebugString;
   private boolean debugScreenActivated;
   private VirtualObject windowBackground;
 
@@ -191,6 +190,30 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
+
+    // ======================================================================================= //
+    //                                        keep above
+    // ======================================================================================= //
+
+    // Add your code here
+
+    debugScreenActivated = true;
+
+    // Init virtualLogWindow
+    float width = 1.5f;
+    float height = 1.0f;
+    float zPos = -2.0f;
+    virtualLogWindow = new VirtualLogWindow(
+            40,
+            25,
+            zPos,
+            width,
+            height);
+
+
+    // ======================================================================================= //
+    //                                        keep below
+    // ======================================================================================= //
   }
 
   /**
@@ -464,16 +487,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
           int numGlyphs = get_num_glyphs(fontPtr);
           Log.i(TAG, "numGlyphs: " + numGlyphs);
 
-          float width = 0.4f;
-          float height = 0.4f;
-          float zPos = -0.5f;
-          virtualLogWindow = new VirtualLogWindow(
-                  30,
-                  50,
-                  zPos,
-                  width,
-                  height);
-
           // For each wanted character create a texture in OpenGL, 33 is '!'
           for (char c = 33; c < 127; c++) {
 
@@ -493,7 +506,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                     render,
                     glyphBuffer,
                     Texture.WrapMode.CLAMP_TO_EDGE,
-                    GLES30.GL_ALPHA, // GL_RED,
+                    GLES30.GL_LUMINANCE, //GL_RED, // GL_RED,GL_ALPHA
                     characterBitmap.getWidth(),
                     characterBitmap.getHeight());
 
@@ -534,9 +547,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
             fontMap.put(c, quad);
           }
 
-          // White background
-          width += 0.1f;
-          height += 0.1f;
+          // Window background
+          float width = virtualLogWindow.getWidth() + 0.3f;
+          float height = virtualLogWindow.getHeight() + 0.3f;
+          float zPos = virtualLogWindow.getZPos();
           float[] squareCoords = { // counterclock order
                   // Front face, starting from bottom left, clockwise order
                   - width / 2, -height / 2, zPos - 0.01f,
@@ -570,11 +584,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         }
       }
 
-      myDebugString = "Hello I am Mister glip glop! And I would like to tell everyone" +
-              "that I love eating ice cream. Seriously it is the best sh*t I've ever" +
-              "eaten! Please provide me like 1024568799999999999999999999999999999994545454" +
-              "545454 354364343435 453 435435 4534 35453434534 3543543543453453 453453" +
-              "ice creams so that I can eat that all the time! Thank you all bisouuus! <3";
+      for (int i=0; i < 10 ; i++) {
+        virtualLogWindow.add("Hello World!");
+      }
 
       // ======================================================================================= //
       //                                        keep below
@@ -740,58 +752,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //                                        keep above
       // ========================================================================================= //
 
-      // Implement the drawing behavior of your game here.
-
-      // debug string
-      virtualLogWindow.setString(myDebugString);
-
-      // init translation vector
-      float tXInit = - virtualLogWindow.getWidth() / 2;
-      float tYInit = virtualLogWindow.getHeight() / 2;
-      float tZ = virtualLogWindow.getZPos();
-      int rowNumber = -1;
-      float verticalPadding = 0.005f;
-
-      // For each character in the string
-      for (int i=0; i < virtualLogWindow.getString().length() ; i++ ) {
-        char c = virtualLogWindow.getString().charAt(i);
-
-        // if the character is a space, leave a space
-        if (c != ' ') {
-
-          // change the position of character
-          if (i % virtualLogWindow.getLineMaxChar() == 0) {
-            Log.i(TAG, "i : " + i + " rowNumber = " + rowNumber);
-            rowNumber += 1;
-          }
-
-          float tX = tXInit + virtualLogWindow.getCharLength() * (i % virtualLogWindow.getLineMaxChar());
-          float tY = tYInit - virtualLogWindow.getCharLength() * rowNumber - verticalPadding * rowNumber;
-
-          // applying transformations:
-          Matrix.setIdentityM(modelMatrix, 0);
-          Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
-          //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
-          //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
-          Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
-
-          // Setting the position, scale and orientation to the square
-          VirtualObject anyChar = fontMap.get(c);
-
-          if (anyChar != null) {
-
-            anyChar.shader.setMat4("uMVPMatrix", uMVPMatrix);
-            // drawing the square
-            render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-            render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
-
-          } else {
-            throw new Error("virtualObject for this char is null");
-          }
-        }
-      }
-
-      // draw debug window background
+      // draw debug window background in black
 
       // applying transformations:
       Matrix.setIdentityM(modelMatrix, 0);
@@ -800,11 +761,49 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 
-      windowBackground.shader.setVec4("vColor", new float[]{1.0f, 1.0f, 1.0f, 1.0f});
+      windowBackground.shader.setVec4("vColor", new float[]{0.0f, 0.0f, 0.0f, 1.0f});
       windowBackground.shader.setMat4("uMVPMatrix", uMVPMatrix);
 
       render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
       render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+
+      // draw characters onto the virtual window
+      float tXInit = - virtualLogWindow.getWidth() / 2;
+      float tYInit = virtualLogWindow.getHeight() / 2;
+      float tZ = virtualLogWindow.getZPos();
+      float verticalPadding = 0.005f;
+
+      for (int i=0 ; i < virtualLogWindow.stringArrayBuffer.getCurrentSize() ; i ++) {
+        String currentString = virtualLogWindow.getString(i);
+        for (int j=0 ; j < currentString.length() ; j++) {
+          char c = currentString.charAt(j);
+          if (c != ' ') {
+            float tX = tXInit + virtualLogWindow.getCharLength() * j;
+            float tY = tYInit - virtualLogWindow.getCharHeight() * i - verticalPadding * i;
+
+            // applying transformations:
+            Matrix.setIdentityM(modelMatrix, 0);
+            Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
+            //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
+            //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+            Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+
+            // Setting the position, scale and orientation to the square
+            VirtualObject anyChar = fontMap.get(c);
+
+            if (anyChar != null) {
+
+              anyChar.shader.setMat4("uMVPMatrix", uMVPMatrix);
+              // drawing the square
+              render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+              render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+
+            } else {
+              throw new Error("virtualObject for this char is null");
+            }
+          }
+        }
+      }
 
 
       // ========================================================================================= //
@@ -893,7 +892,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     }
 
     public native String stringFromJNI();
-    public native long loadFont(String fontPath);
     public native long loadFontFromAssets(byte[] fontData);
     public native int get_num_glyphs(long face);
     public native BitmapData getCharacterBitmap(long face, long charCode);
