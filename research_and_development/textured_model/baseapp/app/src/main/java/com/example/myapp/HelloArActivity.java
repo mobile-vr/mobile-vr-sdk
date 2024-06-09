@@ -88,6 +88,9 @@ import java.util.List;
 
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
+  static {
+    System.loadLibrary("myTarget");
+  }
   private static final String TAG = "mobilevr";
   private static final float Z_NEAR = 0.1f;
   private static final float Z_FAR = 100f;
@@ -174,6 +177,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
+
+    Log.i(TAG, stringFromJNI());
   }
 
   /**
@@ -716,5 +721,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //session.setCameraConfig(cameraConfig);
       session.configure(config);
     }
+
+    public native String stringFromJNI();
 }
 
