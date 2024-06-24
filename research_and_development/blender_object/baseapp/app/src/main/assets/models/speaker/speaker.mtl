@@ -1,0 +1,55 @@
+# Blender 4.1.0 MTL File: 'None'
+# www.blender.org
+
+newmtl Coating
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/loicg/Documents/Projects/Blender/Speaker/Speaker/Textures/PlasticMoldDryBlast002/PlasticMoldDryBlast002_COL_4K.png
+
+newmtl Grid
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/loicg/Documents/Projects/Blender/Speaker/Speaker/Textures/MetalZincGalvanized001/MetalZincGalvanized001_COL_4K_METALNESS.png
+map_Ns C:/Users/loicg/Documents/Projects/Blender/Speaker/Speaker/Textures/MetalZincGalvanized001/MetalZincGalvanized001_ROUGHNESS_4K_METALNESS.png
+map_Bump -bm 1.000000 C:/Users/loicg/Documents/Projects/Blender/Speaker/Speaker/Textures/MetalZincGalvanized001/MetalZincGalvanized001_NRM_4K_METALNESS.png
+
+newmtl Icon
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd -o 17.4 3.5 -30.6 C:/Users/loicg/Documents/Projects/Blender/Speaker/Speaker/jbl.png
+
+newmtl Image_Icon
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Bump -bm 1.000000 C:/Users/loicg/Documents/Projects/Blender/Speaker/Speaker/Textures/MetalCladdingFrame002/MetalCladdingFrame002_NRM_4K.png
+
+newmtl Screw
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd C:/Users/loicg/Documents/Projects/Blender/Speaker/Speaker/Textures/MetalSteelBrushed001/MetalSteelBrushed001_COL_4K_METALNESS.png
+map_Ns C:/Users/loicg/Documents/Projects/Blender/Speaker/Speaker/Textures/MetalSteelBrushed001/MetalSteelBrushed001_ROUGHNESS_4K_METALNESS.png
+map_Bump -bm 1.000000 C:/Users/loicg/Documents/Projects/Blender/Speaker/Speaker/Textures/MetalSteelBrushed001/MetalSteelBrushed001_NRM_4K_METALNESS.png

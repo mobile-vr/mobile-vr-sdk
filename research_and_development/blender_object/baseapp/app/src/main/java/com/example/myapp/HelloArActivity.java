@@ -41,6 +41,8 @@ import com.baseapp.R;
 
 import static com.mobilevr.utils.GeometryUtils.getFingerQuaternion;
 import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
+
+import com.mobilevr.designobjects.ObjProcess;
 import com.mobilevr.handstracking.HandsTrackingThread;
 import com.mobilevr.designobjects.VirtualObject;
 import com.mobilevr.modified.samplerender.Texture;
@@ -138,6 +140,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // Cube
   private Mesh cubeObjectMesh;
   private Shader cubeObjectShader;
+  private Mesh speakerObjectMesh;
+  private Shader speakerObjectShader;
+  private ObjProcess speakerObjProcess;
+  private VirtualObject speakerVirtualObject;
 
   // ======================================================================================= //
   //                                        keep below
@@ -171,7 +177,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
     // DEBUG PARAMETERS
     drawPointer = true;
-    fixCamera = true;
+    fixCamera = false;
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
@@ -431,7 +437,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // an IOException.
       try {
         // For example here's a CUBE
-        cubeObjectMesh = Mesh.createFromAsset(render, "models/cube.obj");
+        /*cubeObjectMesh = Mesh.createFromAsset(render, "models/cube.obj");
 
         cubeObjectShader =
                 Shader.createFromAssets(
@@ -447,7 +453,21 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                 Texture.WrapMode.CLAMP_TO_EDGE,
                 Texture.ColorFormat.SRGB);
 
-        cubeObjectShader.setTexture("ourTexture", cubeTexture);
+        cubeObjectShader.setTexture("ourTexture", cubeTexture);*/
+
+
+        // A speaker
+        // ObjProcess creation
+        speakerObjProcess = new ObjProcess(this,
+                render,
+                "models/speaker/speaker.obj",
+                "models/speaker/speaker.mtl");
+        // VirtualObject creation
+        speakerVirtualObject = new VirtualObject(
+                render,
+                speakerObjProcess.getSubObjects(),
+                "shaders/obj_shader.vert",
+                "shaders/obj_shader.frag");
 
       } catch (IOException e) {
         Log.e(TAG, "Failed to read a required asset file", e);
@@ -621,7 +641,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
       // For example here's a CUBE
       // applying transformations:
-      Matrix.setIdentityM(modelMatrix, 0);
+      /*Matrix.setIdentityM(modelMatrix, 0);
       Matrix.translateM(modelMatrix, 0, 0.0f, 0f, -2.0f);
       Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
@@ -630,7 +650,16 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       cubeObjectShader.setMat4("uMVPMatrix", uMVPMatrix);
       // drawing the square on the virtual scene
       render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 1, x0, y0, u, v);*/
+
+      // Speaker obj
+      Matrix.setIdentityM(modelMatrix, 0);
+      Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, 0.0f);
+      //Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+      //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+      Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+
+      speakerVirtualObject.draw(render, virtualSceneFramebuffer, uMVPMatrix, x0, y0, u, v);
 
 
 

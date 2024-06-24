@@ -18,10 +18,12 @@ package com.mobilevr.designobjects;
 
 import android.util.Log;
 
+import com.mobilevr.modified.samplerender.Framebuffer;
 import com.mobilevr.modified.samplerender.IndexBuffer;
 import com.mobilevr.modified.samplerender.Mesh;
 import com.mobilevr.modified.samplerender.SampleRender;
 import com.mobilevr.modified.samplerender.Shader;
+import com.mobilevr.modified.samplerender.Texture;
 import com.mobilevr.modified.samplerender.VertexBuffer;
 
 import java.io.IOException;
@@ -29,6 +31,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Map;
+import java.util.Objects;
+
+import de.javagl.obj.FloatTuple;
+import de.javagl.obj.Obj;
 
 /**
  * Class holding shaders and the parameters of a virtual object.
@@ -46,6 +53,7 @@ public class VirtualObject {
     public Shader shader;
     public float[][] IFs;
     private String mode;
+    private Map<String, SubObject> subObjects;
 
     /**
      * Creates a VirtualObject. Class holding shaders and
@@ -96,7 +104,7 @@ public class VirtualObject {
         vertexBuffer = new VertexBuffer(render, VERTICES_PER_VERTEX, floatBuffer);
 
 
-        // initialize vertex byte buffer for shape coordinates
+        // initialize indexBuffer
         ByteBuffer bb2 = ByteBuffer.allocateDirect(
                 // (number of coordinate values * 4 bytes per float)
                 indexes.length * 4);
@@ -125,6 +133,64 @@ public class VirtualObject {
                             null);
         } catch (IOException e) {
             Log.e(TAG, "Failed to read a required asset file", e);
+        }
+    }
+
+    public VirtualObject(SampleRender render,
+                         Map<String, SubObject> mySubObjects,
+                         String vertexShaderFileName,
+                         String fragmentShaderFileName) {
+        subObjects = mySubObjects;
+
+        for (Map.Entry<String, SubObject> entry : subObjects.entrySet()) {
+            SubObject currentSubObject = Objects.requireNonNull(subObjects.get(entry.getKey()));
+            try {
+                Shader subObjectShader =
+                        Shader.createFromAssets(
+                                render,
+                                vertexShaderFileName, // is for the position
+                                fragmentShaderFileName, // fragment is for the color
+                                null);
+
+                // create Texture
+                String kdTexturePath = currentSubObject.getMtl().getMapKd();
+
+                if (kdTexturePath == null) {
+                    currentSubObject.disable();
+                } else {
+                    Log.i(TAG, "kdTexturePath : " + kdTexturePath);
+                    Texture texture = Texture.createFromAsset(
+                            render,
+                            kdTexturePath,
+                            Texture.WrapMode.CLAMP_TO_EDGE,
+                            Texture.ColorFormat.SRGB);
+
+                    subObjectShader.setTexture("map_Kd", texture);
+
+                    // Set light parameter
+                    FloatTuple kaFT = currentSubObject.getMtl().getKa();
+                    float[] ka = new float[] {kaFT.getX(), kaFT.getY(), kaFT.getZ()};
+
+                    subObjectShader.setVec3("Ka", ka);
+
+                    currentSubObject.setShader(subObjectShader);
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to read a required asset file", e);
+            }
+        }
+    }
+
+    public void draw(SampleRender render,
+                     Framebuffer frameBuffer,
+                     float[] uMVPMatrix,
+                     float x0,
+                     float y0,
+                     float u,
+                     float v) {
+        for (Map.Entry<String, SubObject> entry : subObjects.entrySet()) {
+            SubObject currentSubObject = Objects.requireNonNull(subObjects.get(entry.getKey()));
+            currentSubObject.draw(render, frameBuffer, uMVPMatrix, x0, y0, u, v);
         }
     }
 }

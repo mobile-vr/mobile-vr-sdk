@@ -18,9 +18,13 @@
 out lowp vec4 FragColor;
 in lowp vec2 TexCoord;
 
-uniform lowp sampler2D ourTexture;
+uniform lowp sampler2D map_Kd;
+uniform lowp vec3 Ka;
+
+lowp vec3 ambient;
 
 void main()
 {
-    FragColor = texture(ourTexture, TexCoord);
+    ambient = Ka * texture(map_Kd, TexCoord).rgb;
+    FragColor = vec4(ambient, 1.0);
 }
