@@ -142,8 +142,11 @@ public class VirtualObject {
                          String fragmentShaderFileName) {
         subObjects = mySubObjects;
 
+        Log.i(TAG, "ici");
+
         for (Map.Entry<String, SubObject> entry : subObjects.entrySet()) {
             SubObject currentSubObject = Objects.requireNonNull(subObjects.get(entry.getKey()));
+            Log.i(TAG, "ici : " + entry.getKey());
             try {
                 Shader subObjectShader =
                         Shader.createFromAssets(
@@ -152,12 +155,22 @@ public class VirtualObject {
                                 fragmentShaderFileName, // fragment is for the color
                                 null);
 
-                // create Texture
+                // Get Texture paths
                 String kdTexturePath = currentSubObject.getMtl().getMapKd();
+                String ksTexturePath = currentSubObject.getMtl().getMapKs();
+                String BumpTexturePath = currentSubObject.getMtl().getBump();
 
-                if (kdTexturePath == null) {
-                    currentSubObject.disable();
-                } else {
+                // Get parameters
+                FloatTuple kaFT = currentSubObject.getMtl().getKa();
+                FloatTuple ksFT = currentSubObject.getMtl().getKs();
+                FloatTuple keFT = currentSubObject.getMtl().getKe();
+                FloatTuple textureOffset = currentSubObject.getMtl().getMapKdOptions().getO();
+                Float ni = currentSubObject.getMtl().getNi();
+                Float d = currentSubObject.getMtl().getD();
+                Float bm = currentSubObject.getMtl().getBumpOptions().getBm();
+                Integer illum = currentSubObject.getMtl().getIllum();
+
+                if (kdTexturePath != null) {
                     Log.i(TAG, "kdTexturePath : " + kdTexturePath);
                     Texture texture = Texture.createFromAsset(
                             render,
@@ -165,16 +178,80 @@ public class VirtualObject {
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.SRGB);
 
+                    // set texture to shader
                     subObjectShader.setTexture("map_Kd", texture);
-
-                    // Set light parameter
-                    FloatTuple kaFT = currentSubObject.getMtl().getKa();
-                    float[] ka = new float[] {kaFT.getX(), kaFT.getY(), kaFT.getZ()};
-
-                    subObjectShader.setVec3("Ka", ka);
-
-                    currentSubObject.setShader(subObjectShader);
                 }
+
+                if (ksTexturePath != null) {
+                    Log.i(TAG, "ksTexturePath : " + ksTexturePath);
+                    Texture texture = Texture.createFromAsset(
+                            render,
+                            ksTexturePath,
+                            Texture.WrapMode.CLAMP_TO_EDGE,
+                            Texture.ColorFormat.SRGB);
+
+                    // set texture to shader
+                    subObjectShader.setTexture("map_Ks", texture);
+                }
+
+                if (BumpTexturePath != null) {
+                    Log.i(TAG, "BumpTexturePath : " + BumpTexturePath);
+                    Texture texture = Texture.createFromAsset(
+                            render,
+                            BumpTexturePath,
+                            Texture.WrapMode.CLAMP_TO_EDGE,
+                            Texture.ColorFormat.SRGB);
+
+                    // set texture to shader
+                    subObjectShader.setTexture("map_Bump", texture);
+                }
+
+                if (kaFT != null) {
+                    // Set light parameter to shader
+                    float[] ka = new float[] {kaFT.getX(), kaFT.getY(), kaFT.getZ()};
+                    subObjectShader.setVec3("Ka", ka);
+                }
+
+                if (ksFT != null) {
+                    // Set light parameter to shader
+                    float[] ks = new float[] {ksFT.getX(), ksFT.getY(), ksFT.getZ()};
+
+                    subObjectShader.setVec3("Ks", ks);
+                }
+
+                if (keFT != null) {
+                    // Set light parameter to shader
+                    float[] ke = new float[] {keFT.getX(), keFT.getY(), keFT.getZ()};
+
+                    subObjectShader.setVec3("Ke", ke);
+                }
+
+                if (textureOffset != null) {
+                    // Set light parameter to shader
+                    float[] to = new float[] {textureOffset.getX(), textureOffset.getY(), textureOffset.getZ()};
+
+                    subObjectShader.setVec3("textureOffset", to);
+                }
+
+                if (ni != null) {
+                    subObjectShader.setFloat("Ni", ni);
+                }
+
+                if (d != null) {
+                    subObjectShader.setFloat("d", d);
+                }
+
+                if (bm != null) {
+                    subObjectShader.setFloat("bumpMultiplier", bm);
+                }
+
+                if (illum != null) {
+                    subObjectShader.setInt("illum", illum);
+                }
+
+                // Set the final shader to the current SubObject instance
+                currentSubObject.setShader(subObjectShader);
+
             } catch (IOException e) {
                 Log.e(TAG, "Failed to read a required asset file", e);
             }
@@ -183,14 +260,14 @@ public class VirtualObject {
 
     public void draw(SampleRender render,
                      Framebuffer frameBuffer,
-                     float[] uMVPMatrix,
+                     Map<String, Object> dynamicParameters,
                      float x0,
                      float y0,
                      float u,
                      float v) {
         for (Map.Entry<String, SubObject> entry : subObjects.entrySet()) {
             SubObject currentSubObject = Objects.requireNonNull(subObjects.get(entry.getKey()));
-            currentSubObject.draw(render, frameBuffer, uMVPMatrix, x0, y0, u, v);
+            currentSubObject.draw(render, frameBuffer, dynamicParameters, x0, y0, u, v);
         }
     }
 }

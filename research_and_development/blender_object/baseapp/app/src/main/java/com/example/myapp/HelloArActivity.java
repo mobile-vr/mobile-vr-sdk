@@ -87,7 +87,9 @@ import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationExceptio
 import com.google.mediapipe.formats.proto.LandmarkProto;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
@@ -414,8 +416,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
               4, 3, 7
       };
       int COORDS_PER_VERTEX = 3;
-      String vertexShaderFileName = "shaders/simpleShader.vert";
-      String fragmentShaderFileName = "shaders/simpleShader.frag";
+      String vertexShaderFileName = "shaders/simple/simpleShader.vert";
+      String fragmentShaderFileName = "shaders/simple/simpleShader.frag";
       String mode = "simple";
       lineObject = new VirtualObject(
               render,
@@ -466,8 +468,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         speakerVirtualObject = new VirtualObject(
                 render,
                 speakerObjProcess.getSubObjects(),
-                "shaders/obj_shader.vert",
-                "shaders/obj_shader.frag");
+                "shaders/obj/v0.2.0_illum2/obj_shader.vert",
+                "shaders/obj/v0.2.0_illum2/obj_shader.frag");
 
       } catch (IOException e) {
         Log.e(TAG, "Failed to read a required asset file", e);
@@ -659,14 +661,23 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 
-      speakerVirtualObject.draw(render, virtualSceneFramebuffer, uMVPMatrix, x0, y0, u, v);
+      float[] lightPos = new float[]{-1.0f, 5.0f, 1.0f};
+      float[] lightColor = new float[]{1.0f, 1.0f, 1.0f};
+      float[] viewPos = new float[]{
+              cameraPose.tx(),
+              cameraPose.ty(),
+              cameraPose.tz()
+      };
 
+      Map<String, Object> dynamicParameters = new HashMap<>();
+      dynamicParameters.put("model", modelMatrix);
+      dynamicParameters.put("view", viewMatrix);
+      dynamicParameters.put("projection", projectionMatrix);
+      dynamicParameters.put("lightPos", lightPos);
+      dynamicParameters.put("lightColor", lightColor);
+      dynamicParameters.put("viewPos", viewPos);
 
-
-
-
-
-
+      speakerVirtualObject.draw(render, virtualSceneFramebuffer, dynamicParameters, x0, y0, u, v);
 
 
       // ========================================================================================= //

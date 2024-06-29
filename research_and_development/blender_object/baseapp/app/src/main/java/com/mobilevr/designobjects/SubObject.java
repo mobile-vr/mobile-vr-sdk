@@ -1,13 +1,18 @@
 package com.mobilevr.designobjects;
 
+import android.util.Log;
+
 import com.mobilevr.modified.samplerender.Framebuffer;
 import com.mobilevr.modified.samplerender.Mesh;
 import com.mobilevr.modified.samplerender.SampleRender;
 import com.mobilevr.modified.samplerender.Shader;
 
+import java.util.Map;
+
 import de.javagl.obj.Mtl;
 
 public class SubObject {
+    private static final String TAG = "mobilevr";
     private Mesh mesh;
     private Mtl mtl;
     private Shader shader;
@@ -19,16 +24,23 @@ public class SubObject {
 
     public void draw(SampleRender render,
                      Framebuffer frameBuffer,
-                     float[] uMVPMatrix,
+                     Map<String, Object> dynamicParameters,
                      float x0,
                      float y0,
                      float u,
                      float v) {
-        // Setting the position, scale and orientation to the square
-        shader.setMat4("uMVPMatrix", uMVPMatrix);
-        // drawing the square on the virtual scene
-        render.draw(mesh, shader, frameBuffer, 0, x0, y0, u, v);
-        render.draw(mesh, shader, frameBuffer, 1, x0, y0, u, v);
+        if (enable) {
+            // Setting the position, scale and orientation to the square
+            Log.i(TAG, "drawing: " + mtl.getName());
+            Log.i(TAG, "shader: " + shader);
+
+            // Set the dynamic parameters: ICI
+            shader.setMat4("uMVPMatrix", uMVPMatrix);
+
+            // drawing the square on the virtual scene
+            render.draw(mesh, shader, frameBuffer, 0, x0, y0, u, v);
+            render.draw(mesh, shader, frameBuffer, 1, x0, y0, u, v);
+        }
     }
 
     public void disable() {
