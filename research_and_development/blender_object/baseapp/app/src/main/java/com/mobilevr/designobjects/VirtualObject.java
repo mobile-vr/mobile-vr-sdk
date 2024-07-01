@@ -36,6 +36,7 @@ import java.util.Objects;
 
 import de.javagl.obj.FloatTuple;
 import de.javagl.obj.Obj;
+import de.javagl.obj.TextureOptions;
 
 /**
  * Class holding shaders and the parameters of a virtual object.
@@ -146,6 +147,9 @@ public class VirtualObject {
 
         for (Map.Entry<String, SubObject> entry : subObjects.entrySet()) {
             SubObject currentSubObject = Objects.requireNonNull(subObjects.get(entry.getKey()));
+            FloatTuple textureOffset;
+            Float bm = null;
+
             Log.i(TAG, "ici : " + entry.getKey());
             try {
                 Shader subObjectShader =
@@ -164,10 +168,48 @@ public class VirtualObject {
                 FloatTuple kaFT = currentSubObject.getMtl().getKa();
                 FloatTuple ksFT = currentSubObject.getMtl().getKs();
                 FloatTuple keFT = currentSubObject.getMtl().getKe();
-                FloatTuple textureOffset = currentSubObject.getMtl().getMapKdOptions().getO();
+                TextureOptions textureOptions = currentSubObject.getMtl().getMapKdOptions();
+                if (textureOptions != null) {
+                    textureOffset = textureOptions.getO();
+                } else {
+                    textureOffset = new FloatTuple() {
+                        @Override
+                        public float getX() {
+                            return 0;
+                        }
+
+                        @Override
+                        public float getY() {
+                            return 0;
+                        }
+
+                        @Override
+                        public float getZ() {
+                            return 0;
+                        }
+
+                        @Override
+                        public float getW() {
+                            return 0;
+                        }
+
+                        @Override
+                        public float get(int index) {
+                            return 0;
+                        }
+
+                        @Override
+                        public int getDimensions() {
+                            return 0;
+                        }
+                    };
+                }
                 Float ni = currentSubObject.getMtl().getNi();
                 Float d = currentSubObject.getMtl().getD();
-                Float bm = currentSubObject.getMtl().getBumpOptions().getBm();
+                textureOptions = currentSubObject.getMtl().getBumpOptions();
+                if (textureOptions != null) {
+                    bm = textureOptions.getBm();
+                }
                 Integer illum = currentSubObject.getMtl().getIllum();
 
                 if (kdTexturePath != null) {
@@ -180,6 +222,7 @@ public class VirtualObject {
 
                     // set texture to shader
                     subObjectShader.setTexture("map_Kd", texture);
+                    subObjectShader.setInt("map_Kd_presence", 1);
                 }
 
                 if (ksTexturePath != null) {
@@ -192,6 +235,7 @@ public class VirtualObject {
 
                     // set texture to shader
                     subObjectShader.setTexture("map_Ks", texture);
+                    subObjectShader.setInt("map_Ks_presence", 1);
                 }
 
                 if (BumpTexturePath != null) {
@@ -204,6 +248,7 @@ public class VirtualObject {
 
                     // set texture to shader
                     subObjectShader.setTexture("map_Bump", texture);
+                    subObjectShader.setInt("map_Bump_presence", 1);
                 }
 
                 if (kaFT != null) {
@@ -228,9 +273,9 @@ public class VirtualObject {
 
                 if (textureOffset != null) {
                     // Set light parameter to shader
-                    float[] to = new float[] {textureOffset.getX(), textureOffset.getY(), textureOffset.getZ()};
+                    float[] myTextureOffset = new float[] {textureOffset.getX(), textureOffset.getY(), textureOffset.getZ()};
 
-                    subObjectShader.setVec3("textureOffset", to);
+                    subObjectShader.setVec3("textureOffset", myTextureOffset);
                 }
 
                 if (ni != null) {

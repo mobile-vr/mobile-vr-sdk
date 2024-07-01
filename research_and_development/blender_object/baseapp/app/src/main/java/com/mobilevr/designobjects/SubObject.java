@@ -10,6 +10,7 @@ import com.mobilevr.modified.samplerender.Shader;
 import java.util.Map;
 
 import de.javagl.obj.Mtl;
+import de.javagl.obj.Obj;
 
 public class SubObject {
     private static final String TAG = "mobilevr";
@@ -34,8 +35,19 @@ public class SubObject {
             Log.i(TAG, "drawing: " + mtl.getName());
             Log.i(TAG, "shader: " + shader);
 
-            // Set the dynamic parameters: ICI
-            shader.setMat4("uMVPMatrix", uMVPMatrix);
+            // Set the dynamic parameters
+            for (Map.Entry<String, Object> entry : dynamicParameters.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                if (value instanceof float[]) {
+                    float[] floatArray = (float[]) value;
+                    if (floatArray.length == 16) {
+                        shader.setMat4(key, floatArray);
+                    } else if (floatArray.length == 3) {
+                        shader.setVec3(key, floatArray);
+                    }
+                }
+            }
 
             // drawing the square on the virtual scene
             render.draw(mesh, shader, frameBuffer, 0, x0, y0, u, v);
