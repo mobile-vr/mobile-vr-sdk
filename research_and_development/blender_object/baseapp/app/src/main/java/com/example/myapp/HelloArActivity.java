@@ -85,6 +85,7 @@ import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
 import com.google.mediapipe.formats.proto.LandmarkProto;
+import com.mobilevr.utils.VectorUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -662,7 +663,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 
       float[] lightPos = new float[]{-1.0f, 5.0f, 1.0f};
-      float[] lightColor = new float[]{1.0f, 1.0f, 1.0f};
+      float[] lightColor = VectorUtils.normalizeVector(new float[]{1.0f, 1.0f, 1.0f});
       float[] viewPos = new float[]{
               cameraPose.tx(),
               cameraPose.ty(),

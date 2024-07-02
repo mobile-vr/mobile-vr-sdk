@@ -161,7 +161,7 @@ public class VirtualObject {
 
                 // Get Texture paths
                 String kdTexturePath = currentSubObject.getMtl().getMapKd();
-                String ksTexturePath = currentSubObject.getMtl().getMapKs();
+                String nsTexturePath = currentSubObject.getMtl().getMapNs();
                 String BumpTexturePath = currentSubObject.getMtl().getBump();
 
                 // Get parameters
@@ -225,17 +225,17 @@ public class VirtualObject {
                     subObjectShader.setInt("map_Kd_presence", 1);
                 }
 
-                if (ksTexturePath != null) {
-                    Log.i(TAG, "ksTexturePath : " + ksTexturePath);
+                if (nsTexturePath != null) {
+                    Log.i(TAG, "nsTexturePath : " + nsTexturePath);
                     Texture texture = Texture.createFromAsset(
                             render,
-                            ksTexturePath,
+                            nsTexturePath,
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.SRGB);
 
                     // set texture to shader
-                    subObjectShader.setTexture("map_Ks", texture);
-                    subObjectShader.setInt("map_Ks_presence", 1);
+                    subObjectShader.setTexture("map_Ns", texture);
+                    subObjectShader.setInt("map_Ns_presence", 1);
                 }
 
                 if (BumpTexturePath != null) {

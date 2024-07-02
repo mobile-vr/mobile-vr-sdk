@@ -20,7 +20,7 @@ in lowp vec2 vTexCoord;
 in lowp vec3 vFragPos;
 
 uniform lowp sampler2D map_Kd;
-uniform lowp sampler2D map_Ks; // (Specular exponent texture map)
+uniform lowp sampler2D map_Ns; // (Specular exponent texture map)
 uniform lowp sampler2D map_Bump; //(Bump map texture)
 uniform lowp vec3 Ka; // (ambient color)
 uniform lowp vec3 Ks; // (specular color)
@@ -30,15 +30,16 @@ uniform lowp float d; // (dissolve factor)
 uniform lowp float bumpMultiplier;
 uniform lowp int illum; // (illumination model)
 uniform lowp int map_Kd_presence;
-uniform lowp int map_Ks_presence;
+uniform lowp int map_Ns_presence;
 uniform lowp int map_Bump_presence;
 uniform lowp vec3 lightPos; // (Light position)
 uniform lowp vec3 viewPos; // (Camera position)
-uniform lowp vec3 lightColor; // (Light color)
+uniform lowp vec3 lightColor; // (Light color normalized)
 
 out lowp vec4 FragColor;
 
 lowp vec3 ambient;
+lowp vec3 lighting;
 
 lowp vec3 calculateRefraction(lowp vec3 I, lowp vec3 N, lowp float eta) {
     lowp float cosi = clamp(dot(I, N), -1.0, 1.0);
@@ -61,25 +62,27 @@ void main()
 {
     // Initialize texture samples
     lowp vec3 diffuseColor = vec3(1.0); // Default white color if map_Kd is null
-    lowp float specularExponent = 1.0; // Default specular exponent if map_Ks is null
+    lowp float specularExponent = 1.0; // Default specular exponent if map_Ns is null
     lowp vec3 bump = vec3(0.5); // Default bump if map_Bump is null
 
+    lowp vec3 refractionColor = vec3(0.0);
+
     // Texture sampling
-    if (map_Kd_presence != 1)
+    if (map_Kd_presence != 0)
     {
         diffuseColor = texture(map_Kd, vTexCoord).rgb;
     }
-    if (map_Ks_presence != 1)
+    if (map_Ns_presence != 0)
     {
-        specularExponent = texture(map_Ks, vTexCoord).r;
+        specularExponent = texture(map_Ns, vTexCoord).r;
     }
-    if (map_Bump_presence != 1)
+    if (map_Bump_presence != 0)
     {
         bump = texture(map_Bump, vTexCoord).rgb;
     }
 
     // Normal mapping
-    lowp vec3 norm = normalize(vNormal + (bump * 2.0 - 1.0) * bumpMultiplier);
+    lowp vec3 norm = normalize(vNormal + (bump * vec3(2.0) - vec3(1.0)) * vec3(bumpMultiplier));
 
     // Create ambient light
     ambient = Ka * diffuseColor;
@@ -96,11 +99,14 @@ void main()
     lowp vec3 specular = Ks * spec * lightColor;
 
     // Refraction lighting
-    lowp vec3 R = calculateRefraction(viewDir, norm, Ni);
-    lowp vec3 refractionColor = texture(map_Ks , vTexCoord + R.xy).rgb;
+    if (map_Ns_presence != 0)
+    {
+        lowp vec3 R = calculateRefraction(viewDir, norm, Ni);
+        lowp vec3 refractionColor = texture(map_Ns, vTexCoord + R.xy).rgb;
+    }
 
     // Combine results
-    lowp vec3 lighting = ambient + diffuse + specular + refractionColor;
+    lighting = ambient + diffuse + specular + refractionColor;
 
     // Apply illumination model
     if (illum == 2)
