@@ -139,12 +139,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // ======================================================================================= //
 
   // Implement your variables here
-
-  // Cube
-  private Mesh cubeObjectMesh;
-  private Shader cubeObjectShader;
-  private Mesh speakerObjectMesh;
-  private Shader speakerObjectShader;
   private ObjProcess speakerObjProcess;
   private VirtualObject speakerVirtualObject;
 
@@ -439,26 +433,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
       // an IOException.
       try {
-        // For example here's a CUBE
-        /*cubeObjectMesh = Mesh.createFromAsset(render, "models/cube.obj");
-
-        cubeObjectShader =
-                Shader.createFromAssets(
-                        render,
-                        "shaders/obj_shader.vert", // .vert is for the position
-                        "shaders/obj_shader.frag", // .frag is for the color
-                        null);
-
-        // Cube Texture init
-        Texture cubeTexture = Texture.createFromAsset(
-                render,
-                "images/oak_veneer_01_diff_4k.jpg",
-                Texture.WrapMode.CLAMP_TO_EDGE,
-                Texture.ColorFormat.SRGB);
-
-        cubeObjectShader.setTexture("ourTexture", cubeTexture);*/
-
-
         // A speaker
         // ObjProcess creation
         speakerObjProcess = new ObjProcess(this,
@@ -641,19 +615,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // ========================================================================================= //
 
       // Implement the drawing behavior of your game here.
-
-      // For example here's a CUBE
-      // applying transformations:
-      /*Matrix.setIdentityM(modelMatrix, 0);
-      Matrix.translateM(modelMatrix, 0, 0.0f, 0f, -2.0f);
-      Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
-      //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
-      Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
-      // Setting the position, scale and orientation to the square
-      cubeObjectShader.setMat4("uMVPMatrix", uMVPMatrix);
-      // drawing the square on the virtual scene
-      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 1, x0, y0, u, v);*/
 
       // Speaker obj
       Matrix.setIdentityM(modelMatrix, 0);

@@ -159,6 +159,7 @@ public class Texture implements Closeable {
           convertBitmapToConfig(
               BitmapFactory.decodeStream(render.getAssets().open(assetFileName)),
               Bitmap.Config.ARGB_8888);
+      bitmap = flipBitmapVertically(bitmap);
       ByteBuffer buffer = ByteBuffer.allocateDirect(bitmap.getByteCount());
       bitmap.copyPixelsToBuffer(buffer);
       buffer.rewind();
@@ -304,5 +305,17 @@ public class Texture implements Closeable {
             GLES30.GL_CLAMP_TO_EDGE);
 
     return texture;
+  }
+
+  /**
+   * Using OpenGL with Bitmap set the origin of the texture at the top left corner
+   * instead of the bottom left. Thus it is required to flip the texture.
+   * @param original
+   * @return
+   */
+  public static Bitmap flipBitmapVertically(Bitmap original) {
+    Matrix matrix = new Matrix();
+    matrix.preScale(1.0f, -1.0f);  // Flip vertically
+    return Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), matrix, false);
   }
 }

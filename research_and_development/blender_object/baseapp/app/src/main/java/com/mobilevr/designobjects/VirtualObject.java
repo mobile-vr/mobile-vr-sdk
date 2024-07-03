@@ -25,6 +25,7 @@ import com.mobilevr.modified.samplerender.SampleRender;
 import com.mobilevr.modified.samplerender.Shader;
 import com.mobilevr.modified.samplerender.Texture;
 import com.mobilevr.modified.samplerender.VertexBuffer;
+import com.mobilevr.utils.VectorUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -143,14 +144,11 @@ public class VirtualObject {
                          String fragmentShaderFileName) {
         subObjects = mySubObjects;
 
-        Log.i(TAG, "ici");
-
         for (Map.Entry<String, SubObject> entry : subObjects.entrySet()) {
             SubObject currentSubObject = Objects.requireNonNull(subObjects.get(entry.getKey()));
             FloatTuple textureOffset;
             Float bm = null;
 
-            Log.i(TAG, "ici : " + entry.getKey());
             try {
                 Shader subObjectShader =
                         Shader.createFromAssets(
@@ -253,27 +251,32 @@ public class VirtualObject {
 
                 if (kaFT != null) {
                     // Set light parameter to shader
-                    float[] ka = new float[] {kaFT.getX(), kaFT.getY(), kaFT.getZ()};
+                    float[] ka = new float[]{kaFT.getX(), kaFT.getY(), kaFT.getZ()};
                     subObjectShader.setVec3("Ka", ka);
                 }
 
                 if (ksFT != null) {
                     // Set light parameter to shader
-                    float[] ks = new float[] {ksFT.getX(), ksFT.getY(), ksFT.getZ()};
+                    float[] ks = new float[]{ksFT.getX(), ksFT.getY(), ksFT.getZ()};
 
                     subObjectShader.setVec3("Ks", ks);
                 }
 
                 if (keFT != null) {
                     // Set light parameter to shader
-                    float[] ke = new float[] {keFT.getX(), keFT.getY(), keFT.getZ()};
+                    float[] ke = new float[]{keFT.getX(), keFT.getY(), keFT.getZ()};
 
                     subObjectShader.setVec3("Ke", ke);
                 }
 
                 if (textureOffset != null) {
                     // Set light parameter to shader
-                    float[] myTextureOffset = new float[] {textureOffset.getX(), textureOffset.getY(), textureOffset.getZ()};
+                    Log.i(TAG, "textureOffset : " + textureOffset);
+                    float[] myTextureOffset = new float[]{
+                            textureOffset.getX(),
+                            textureOffset.getY(),
+                            textureOffset.getZ()
+                    };
 
                     subObjectShader.setVec3("textureOffset", myTextureOffset);
                 }
