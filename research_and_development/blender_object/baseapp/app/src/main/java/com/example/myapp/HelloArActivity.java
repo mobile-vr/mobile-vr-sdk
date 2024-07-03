@@ -41,6 +41,8 @@ import com.baseapp.R;
 
 import static com.mobilevr.utils.GeometryUtils.getFingerQuaternion;
 import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
+
+import com.mobilevr.designobjects.ObjProcess;
 import com.mobilevr.handstracking.HandsTrackingThread;
 import com.mobilevr.designobjects.VirtualObject;
 import com.mobilevr.modified.samplerender.Texture;
@@ -83,9 +85,12 @@ import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
 import com.google.mediapipe.formats.proto.LandmarkProto;
+import com.mobilevr.utils.VectorUtils;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
@@ -134,10 +139,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // ======================================================================================= //
 
   // Implement your variables here
-
-  // Cube
-  private Mesh cubeObjectMesh;
-  private Shader cubeObjectShader;
+  private ObjProcess speakerObjProcess;
+  private VirtualObject speakerVirtualObject;
 
   // ======================================================================================= //
   //                                        keep below
@@ -171,7 +174,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
     // DEBUG PARAMETERS
     drawPointer = true;
-    fixCamera = true;
+    fixCamera = false;
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
@@ -408,8 +411,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
               4, 3, 7
       };
       int COORDS_PER_VERTEX = 3;
-      String vertexShaderFileName = "shaders/simpleShader.vert";
-      String fragmentShaderFileName = "shaders/simpleShader.frag";
+      String vertexShaderFileName = "shaders/simple/simpleShader.vert";
+      String fragmentShaderFileName = "shaders/simple/simpleShader.frag";
       String mode = "simple";
       lineObject = new VirtualObject(
               render,
@@ -430,24 +433,18 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
       // an IOException.
       try {
-        // For example here's a CUBE
-        cubeObjectMesh = Mesh.createFromAsset(render, "models/cube.obj");
-
-        cubeObjectShader =
-                Shader.createFromAssets(
-                        render,
-                        "shaders/obj_shader.vert", // .vert is for the position
-                        "shaders/obj_shader.frag", // .frag is for the color
-                        null);
-
-        // Cube Texture init
-        Texture cubeTexture = Texture.createFromAsset(
+        // A speaker
+        // ObjProcess creation
+        speakerObjProcess = new ObjProcess(this,
                 render,
-                "images/oak_veneer_01_diff_4k.jpg",
-                Texture.WrapMode.CLAMP_TO_EDGE,
-                Texture.ColorFormat.SRGB);
-
-        cubeObjectShader.setTexture("ourTexture", cubeTexture);
+                "models/speaker/speaker.obj",
+                "models/speaker/speaker.mtl");
+        // VirtualObject creation
+        speakerVirtualObject = new VirtualObject(
+                render,
+                speakerObjProcess.getSubObjects(),
+                "shaders/obj/v0.2.0_illum2/obj_shader.vert",
+                "shaders/obj/v0.2.0_illum2/obj_shader.frag");
 
       } catch (IOException e) {
         Log.e(TAG, "Failed to read a required asset file", e);
@@ -619,25 +616,30 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
       // Implement the drawing behavior of your game here.
 
-      // For example here's a CUBE
-      // applying transformations:
+      // Speaker obj
       Matrix.setIdentityM(modelMatrix, 0);
-      Matrix.translateM(modelMatrix, 0, 0.0f, 0f, -2.0f);
-      Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+      Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, 0.0f);
+      //Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
-      // Setting the position, scale and orientation to the square
-      cubeObjectShader.setMat4("uMVPMatrix", uMVPMatrix);
-      // drawing the square on the virtual scene
-      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 1, x0, y0, u, v);
 
+      float[] lightPos = new float[]{-1.0f, 5.0f, 1.0f};
+      float[] lightColor = VectorUtils.normalizeVector(new float[]{1.0f, 1.0f, 1.0f});
+      float[] viewPos = new float[]{
+              cameraPose.tx(),
+              cameraPose.ty(),
+              cameraPose.tz()
+      };
 
+      Map<String, Object> dynamicParameters = new HashMap<>();
+      dynamicParameters.put("model", modelMatrix);
+      dynamicParameters.put("view", viewMatrix);
+      dynamicParameters.put("projection", projectionMatrix);
+      dynamicParameters.put("lightPos", lightPos);
+      dynamicParameters.put("lightColor", lightColor);
+      dynamicParameters.put("viewPos", viewPos);
 
-
-
-
-
+      speakerVirtualObject.draw(render, virtualSceneFramebuffer, dynamicParameters, x0, y0, u, v);
 
 
       // ========================================================================================= //

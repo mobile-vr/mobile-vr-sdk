@@ -1,0 +1,46 @@
+# Blender 4.1.0 MTL File: 'None'
+# www.blender.org
+
+newmtl Coating
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd models/speaker/Textures/PlasticMoldDryBlast002/PlasticMoldDryBlast002_COL_4K.png
+
+newmtl Grid
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd models/speaker/Textures/MetalZincGalvanized001/MetalZincGalvanized001_COL_4K_METALNESS.png
+map_Ns models/speaker/Textures/MetalZincGalvanized001/MetalZincGalvanized001_ROUGHNESS_4K_METALNESS.png
+map_Bump -bm 1.000000 models/speaker/Textures/MetalZincGalvanized001/MetalZincGalvanized001_NRM_4K_METALNESS.png
+
+newmtl Image_Icon
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd -o 0.05 0.0 0.0 models/speaker/Textures/JBLLogo/jbl.png
+map_Bump -bm 1.000000 models/speaker/Textures/MetalCladdingFrame002/MetalCladdingFrame002_NRM_4K.png
+
+newmtl Screw
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd models/speaker/Textures/MetalSteelBrushed001/MetalSteelBrushed001_COL_4K_METALNESS.png
+map_Ns models/speaker/Textures/MetalSteelBrushed001/MetalSteelBrushed001_ROUGHNESS_4K_METALNESS.png
+map_Bump -bm 1.000000 models/speaker/Textures/MetalSteelBrushed001/MetalSteelBrushed001_NRM_4K_METALNESS.png
