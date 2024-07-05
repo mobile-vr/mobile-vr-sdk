@@ -17,6 +17,7 @@ Software Development Kit to build XR apps on Android.<br>
 | 6-dof without ARCore | |
 | Hands tracking (mediapipe) | Developped  |
 | Rendering (OpenGL) | Developped |
+| 3D models (.obj) | Developped |
 | Splitted screen like VR | Developped |
 | Change screen sizes | Developped |
 | Joystick support | Developped |
