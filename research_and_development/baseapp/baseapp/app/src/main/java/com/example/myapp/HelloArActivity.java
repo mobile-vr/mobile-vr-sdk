@@ -39,10 +39,6 @@ package com.example.myapp;
 
 import com.baseapp.R;
 
-import static com.mobilevr.utils.GeometryUtils.getFingerQuaternion;
-import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
-import com.mobilevr.handstracking.HandsTrackingThread;
-import com.mobilevr.designobjects.VirtualObject;
 import com.mobilevr.modified.samplerender.arcore.BackgroundRenderer;
 import com.mobilevr.modified.samplerender.Framebuffer;
 import com.mobilevr.modified.samplerender.Mesh;
@@ -81,8 +77,6 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
-import com.google.mediapipe.formats.proto.LandmarkProto;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -105,8 +99,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   private boolean hasSetTextureNames = false;
   private final DepthSettings depthSettings = new DepthSettings();
 
-  // Line
-  private VirtualObject lineObject;
 
   // Model, view, projection, VP and MVP Matrices.
   // FYI: Temporary matrix allocated here to reduce number of allocations for each frame.
@@ -120,13 +112,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // Debug
   private long time;
   public Context nonUiContext;
-  private Boolean drawPointer, fixCamera;
+  private Boolean fixCamera;
   private float[] cameraPosition = new float[3];
-
-  // Hands tracking
-  private HandsTrackingThread handsTrackingThread;
-  private float fovx, fovy;
-  private float[] fingerQuaternion;
 
   // ======================================================================================= //
   //                                        keep above
@@ -163,13 +150,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     nonUiContext = getApplicationContext();
     depthSettings.onCreate(this);
 
-    // horizontal and vertical fov
-    // Using the phone in portrait, the y is vertical and x is horizontal.
-    fovx = 40.0f * (float) (Math.PI / 180);
-    fovy = 50.0f * (float) (Math.PI / 180);
-
     // DEBUG PARAMETERS
-    drawPointer = true;
     fixCamera = true;
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
@@ -188,11 +169,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // https://developers.google.com/ar/reference/java/arcore/reference/com/google/ar/core/Session#close()
       session.close();
       session = null;
-    }
-
-    // Interrupt HandsTrackingThread
-    if (handsTrackingThread != null) {
-      handsTrackingThread.interrupt();
     }
 
     super.onDestroy();
@@ -254,22 +230,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         }
       }
 
-      // Create and start new HandsTrackingThread
-      Thread asyncThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          // Create and start new HandsTrackingThread
-          handsTrackingThread = new HandsTrackingThread(nonUiContext);
-          handsTrackingThread.start();
-          Log.i(
-                  TAG,
-                  "Starting hands tracking thread: " +
-                          Boolean.toString(handsTrackingThread.isRunning)
-          );
-        }
-      });
-      asyncThread.start();
-
       // Note that order matters - see the note in onPause(), the reverse applies here.
       try {
         configureSession();
@@ -307,11 +267,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         displayRotationHelper.onPause();
         surfaceView.onPause();
         session.pause();
-      }
-
-      // Interrupt handsTrackingThread
-      if (handsTrackingThread != null) {
-        handsTrackingThread.interrupt();
       }
     }
 
@@ -366,59 +321,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // To render the image taken from the camera at the background
       backgroundRenderer = new BackgroundRenderer(render);
       virtualSceneFramebuffer = new Framebuffer(render, /*width=*/ 1, /*height=*/ 1);
-
-      // LINE object init: this is the pointer
-      float[] lineCoords = {
-              // Front face
-              -0.005f, -0.005f, 10.0f,
-              0.005f, -0.005f, 10.0f,
-              0.005f, 0.005f, 10.0f,
-              -0.005f, 0.005f, 10.0f,
-
-              // Back face
-              -0.005f, -0.005f, -10.0f,
-              0.005f, -0.005f, -10.0f,
-              0.005f, 0.005f, -10.0f,
-              -0.005f, 0.005f, -10.0f
-      };
-      int[] lineIndex = {
-              // Front face
-              0, 1, 2,
-              0, 2, 3,
-
-              // Back face
-              4, 6, 5,
-              4, 7, 6,
-
-              // Left face
-              4, 5, 1,
-              4, 1, 0,
-
-              // Right face
-              3, 2, 6,
-              3, 6, 7,
-
-              // Top face
-              1, 5, 6,
-              1, 6, 2,
-
-              // Bottom face
-              4, 0, 3,
-              4, 3, 7
-      };
-      int COORDS_PER_VERTEX = 3;
-      String vertexShaderFileName = "shaders/simpleShader.vert";
-      String fragmentShaderFileName = "shaders/simpleShader.frag";
-      String mode = "simple";
-      lineObject = new VirtualObject(
-              render,
-              COORDS_PER_VERTEX,
-              lineCoords,
-              lineIndex,
-              vertexShaderFileName,
-              fragmentShaderFileName,
-              null,
-              mode);
 
       // ======================================================================================= //
       //                                        keep above
@@ -588,21 +490,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // Clear the screen before drawing the next frame
       render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f, 2, x0, y0, u, v);
 
-
-      // Get landmarkList
-      List<LandmarkProto.NormalizedLandmark> landmarkList = null;
-      if (handsTrackingThread != null) {
-        landmarkList = handsTrackingThread.getLandmarkList();
-      }
-
-
-      // Get fingerQuaternion
-      if (landmarkList != null) {
-        fingerQuaternion = getFingerQuaternion(cameraPose, landmarkList, fovx, fovy);
-      } else {
-        fingerQuaternion = null;
-      }
-
       // ========================================================================================= //
       //                                        keep above
       // ========================================================================================= //
@@ -626,75 +513,13 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
 
 
-
-
-
-
-
-
       // ========================================================================================= //
       //                                        keep below
       // ========================================================================================= //
 
-      // If the pointer is wanted to be drawn
-      if (drawPointer && fingerQuaternion != null) {
-
-        float[] pointerPosition;
-
-        if (fixCamera) {
-          pointerPosition = new float[]{0, 0, 0};
-        } else {
-          pointerPosition = new float[]{
-                  cameraPose.tx(),
-                  cameraPose.ty(),
-                  cameraPose.tz()
-          };
-        }
-
-        // DRAW Line which is the pointer
-
-        // applying transformations:
-        Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.translateM(modelMatrix, 0, pointerPosition[0],
-                pointerPosition[1],
-                pointerPosition[2]);
-        Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
-
-        // Convert the quaternion to a rotation matrix
-        float[] rotationMatrix = quaternionToMatrix(fingerQuaternion);
-
-        // Apply the rotation matrix to your model matrix
-        Matrix.multiplyMM(modelMatrix, 0, modelMatrix, 0, rotationMatrix, 0);
-        Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
-
-        // setting the color
-        lineObject.shader.setVec4("vColor", new float[]{0.63671875f, 0.76953125f, 0.22265625f, 1.0f});
-
-        // Setting the position, scale and orientation to the square
-        lineObject.shader.setMat4("uMVPMatrix", uMVPMatrix);
-
-        // drawing the line
-        render.draw(lineObject.mesh, lineObject.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-        render.draw(lineObject.mesh, lineObject.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
-      }
-
       // Compose the virtual scene with the background. i.e. Draw the virtual scene
       backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR, x0, y0, u, v);
 
-      // Set a new image every 0ms to handsTrackingThread
-      if (System.currentTimeMillis() - time > 0) {
-
-        // Set camera image for the other thread
-        try (Image cameraImage = frame.acquireCameraImage()) {
-          if (handsTrackingThread != null) {
-            handsTrackingThread.setCameraImage(cameraImage);
-          }
-        } catch (NotYetAvailableException e) {
-          // This normally means that depth data is not available yet. This is normal so we will not
-          // spam the logcat with this.
-        }
-        time = System.currentTimeMillis();
-      }
     }
 
     /**
