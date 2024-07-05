@@ -18,17 +18,26 @@ package com.mobilevr.designobjects;
 
 import android.util.Log;
 
+import com.mobilevr.modified.samplerender.Framebuffer;
 import com.mobilevr.modified.samplerender.IndexBuffer;
 import com.mobilevr.modified.samplerender.Mesh;
 import com.mobilevr.modified.samplerender.SampleRender;
 import com.mobilevr.modified.samplerender.Shader;
+import com.mobilevr.modified.samplerender.Texture;
 import com.mobilevr.modified.samplerender.VertexBuffer;
+import com.mobilevr.utils.VectorUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Map;
+import java.util.Objects;
+
+import de.javagl.obj.FloatTuple;
+import de.javagl.obj.Obj;
+import de.javagl.obj.TextureOptions;
 
 /**
  * Class holding shaders and the parameters of a virtual object.
@@ -46,6 +55,7 @@ public class VirtualObject {
     public Shader shader;
     public float[][] IFs;
     private String mode;
+    private Map<String, SubObject> subObjects;
 
     /**
      * Creates a VirtualObject. Class holding shaders and
@@ -96,7 +106,7 @@ public class VirtualObject {
         vertexBuffer = new VertexBuffer(render, VERTICES_PER_VERTEX, floatBuffer);
 
 
-        // initialize vertex byte buffer for shape coordinates
+        // initialize indexBuffer
         ByteBuffer bb2 = ByteBuffer.allocateDirect(
                 // (number of coordinate values * 4 bytes per float)
                 indexes.length * 4);
@@ -125,6 +135,187 @@ public class VirtualObject {
                             null);
         } catch (IOException e) {
             Log.e(TAG, "Failed to read a required asset file", e);
+        }
+    }
+
+    public VirtualObject(SampleRender render,
+                         Map<String, SubObject> mySubObjects,
+                         String vertexShaderFileName,
+                         String fragmentShaderFileName) {
+        subObjects = mySubObjects;
+
+        for (Map.Entry<String, SubObject> entry : subObjects.entrySet()) {
+            SubObject currentSubObject = Objects.requireNonNull(subObjects.get(entry.getKey()));
+            FloatTuple textureOffset;
+            Float bm = null;
+
+            try {
+                Shader subObjectShader =
+                        Shader.createFromAssets(
+                                render,
+                                vertexShaderFileName, // is for the position
+                                fragmentShaderFileName, // fragment is for the color
+                                null);
+
+                // Get Texture paths
+                String kdTexturePath = currentSubObject.getMtl().getMapKd();
+                String nsTexturePath = currentSubObject.getMtl().getMapNs();
+                String BumpTexturePath = currentSubObject.getMtl().getBump();
+
+                // Get parameters
+                FloatTuple kaFT = currentSubObject.getMtl().getKa();
+                FloatTuple ksFT = currentSubObject.getMtl().getKs();
+                FloatTuple keFT = currentSubObject.getMtl().getKe();
+                TextureOptions textureOptions = currentSubObject.getMtl().getMapKdOptions();
+                if (textureOptions != null) {
+                    textureOffset = textureOptions.getO();
+                } else {
+                    textureOffset = new FloatTuple() {
+                        @Override
+                        public float getX() {
+                            return 0;
+                        }
+
+                        @Override
+                        public float getY() {
+                            return 0;
+                        }
+
+                        @Override
+                        public float getZ() {
+                            return 0;
+                        }
+
+                        @Override
+                        public float getW() {
+                            return 0;
+                        }
+
+                        @Override
+                        public float get(int index) {
+                            return 0;
+                        }
+
+                        @Override
+                        public int getDimensions() {
+                            return 0;
+                        }
+                    };
+                }
+                Float ni = currentSubObject.getMtl().getNi();
+                Float d = currentSubObject.getMtl().getD();
+                textureOptions = currentSubObject.getMtl().getBumpOptions();
+                if (textureOptions != null) {
+                    bm = textureOptions.getBm();
+                }
+                Integer illum = currentSubObject.getMtl().getIllum();
+
+                if (kdTexturePath != null) {
+                    Log.i(TAG, "kdTexturePath : " + kdTexturePath);
+                    Texture texture = Texture.createFromAsset(
+                            render,
+                            kdTexturePath,
+                            Texture.WrapMode.CLAMP_TO_EDGE,
+                            Texture.ColorFormat.SRGB);
+
+                    // set texture to shader
+                    subObjectShader.setTexture("map_Kd", texture);
+                    subObjectShader.setInt("map_Kd_presence", 1);
+                }
+
+                if (nsTexturePath != null) {
+                    Log.i(TAG, "nsTexturePath : " + nsTexturePath);
+                    Texture texture = Texture.createFromAsset(
+                            render,
+                            nsTexturePath,
+                            Texture.WrapMode.CLAMP_TO_EDGE,
+                            Texture.ColorFormat.SRGB);
+
+                    // set texture to shader
+                    subObjectShader.setTexture("map_Ns", texture);
+                    subObjectShader.setInt("map_Ns_presence", 1);
+                }
+
+                if (BumpTexturePath != null) {
+                    Log.i(TAG, "BumpTexturePath : " + BumpTexturePath);
+                    Texture texture = Texture.createFromAsset(
+                            render,
+                            BumpTexturePath,
+                            Texture.WrapMode.CLAMP_TO_EDGE,
+                            Texture.ColorFormat.SRGB);
+
+                    // set texture to shader
+                    subObjectShader.setTexture("map_Bump", texture);
+                    subObjectShader.setInt("map_Bump_presence", 1);
+                }
+
+                if (kaFT != null) {
+                    // Set light parameter to shader
+                    float[] ka = new float[]{kaFT.getX(), kaFT.getY(), kaFT.getZ()};
+                    subObjectShader.setVec3("Ka", ka);
+                }
+
+                if (ksFT != null) {
+                    // Set light parameter to shader
+                    float[] ks = new float[]{ksFT.getX(), ksFT.getY(), ksFT.getZ()};
+
+                    subObjectShader.setVec3("Ks", ks);
+                }
+
+                if (keFT != null) {
+                    // Set light parameter to shader
+                    float[] ke = new float[]{keFT.getX(), keFT.getY(), keFT.getZ()};
+
+                    subObjectShader.setVec3("Ke", ke);
+                }
+
+                if (textureOffset != null) {
+                    // Set light parameter to shader
+                    Log.i(TAG, "textureOffset : " + textureOffset);
+                    float[] myTextureOffset = new float[]{
+                            textureOffset.getX(),
+                            textureOffset.getY(),
+                            textureOffset.getZ()
+                    };
+
+                    subObjectShader.setVec3("textureOffset", myTextureOffset);
+                }
+
+                if (ni != null) {
+                    subObjectShader.setFloat("Ni", ni);
+                }
+
+                if (d != null) {
+                    subObjectShader.setFloat("d", d);
+                }
+
+                if (bm != null) {
+                    subObjectShader.setFloat("bumpMultiplier", bm);
+                }
+
+                if (illum != null) {
+                    subObjectShader.setInt("illum", illum);
+                }
+
+                // Set the final shader to the current SubObject instance
+                currentSubObject.setShader(subObjectShader);
+
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to read a required asset file", e);
+            }
+        }
+    }
+
+    public void draw(SampleRender render,
+                     Framebuffer frameBuffer,
+                     Map<String, Object> dynamicParameters,
+                     float x0,
+                     float y0,
+                     float u,
+                     float v) {
+        for (Map.Entry<String, SubObject> entry : subObjects.entrySet()) {
+            SubObject currentSubObject = Objects.requireNonNull(subObjects.get(entry.getKey()));
+            currentSubObject.draw(render, frameBuffer, dynamicParameters, x0, y0, u, v);
         }
     }
 }
