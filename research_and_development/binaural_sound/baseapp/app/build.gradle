@@ -12,6 +12,11 @@ android {
         targetSdkVersion 31
         versionCode 1
         versionName '1.0'
+        externalNativeBuild {
+            cmake {
+                cppFlags ''
+            }
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -24,6 +29,17 @@ android {
         }
     }
     namespace 'com.baseapp'
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDir "build/intermediates/stripped_native_libs/debug/out/lib"
+        }
+    }
 }
 
 dependencies {

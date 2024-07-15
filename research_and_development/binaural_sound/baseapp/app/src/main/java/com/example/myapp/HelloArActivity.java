@@ -82,6 +82,9 @@ import java.util.List;
 
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
+  static {
+    System.loadLibrary("PlayerExample");
+  }
   private static final String TAG = "mobilevr";
   private static final float Z_NEAR = 0.1f;
   private static final float Z_FAR = 100f;
