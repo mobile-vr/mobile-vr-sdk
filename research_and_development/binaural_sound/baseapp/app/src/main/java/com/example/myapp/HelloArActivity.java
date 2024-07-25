@@ -46,7 +46,9 @@ import com.mobilevr.modified.samplerender.SampleRender;
 import com.mobilevr.modified.samplerender.Shader;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.media.Image;
+import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
@@ -158,6 +160,52 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
+
+    // ======================================================================================= //
+    //                                        keep above
+    // ======================================================================================= //
+
+    // Get Sample rate and buffer size
+    String samplerateString = null, buffersizeString = null;
+
+    AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+
+    if (audioManager != null) {
+      samplerateString = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+      buffersizeString = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+    }
+
+    if (samplerateString == null) samplerateString = "48000";
+
+    if (buffersizeString == null) buffersizeString = "480";
+
+    int samplerate = Integer.parseInt(samplerateString);
+
+    int buffersize = Integer.parseInt(buffersizeString);
+
+
+    // Get the offset and length to know where our file is located.
+    AssetFileDescriptor fd = getResources().openRawResourceFd(R.raw.track);
+    int fileOffset = (int)fd.getStartOffset();
+    int fileLength = (int)fd.getLength();
+    try {
+      fd.getParcelFileDescriptor().close();
+    } catch (IOException e) {
+      Log.e("PlayerExample", "Close error.");
+    }
+
+    // get path to APK package
+    String path = getPackageResourcePath();
+
+    // start audio engine
+    NativeInit(samplerate, buffersize, getCacheDir().getAbsolutePath());
+
+    // open audio file from APK
+    OpenFileFromAPK(path, fileOffset, fileLength);
+
+    // ======================================================================================= //
+    //                                        keep below
+    // ======================================================================================= //
   }
 
   /**
@@ -173,6 +221,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       session.close();
       session = null;
     }
+
+    Cleanup();
 
     super.onDestroy();
   }
@@ -254,6 +304,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
       surfaceView.onResume();
       displayRotationHelper.onResume();
+
+      onForeground();
     }
 
     /**
@@ -271,6 +323,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         surfaceView.onPause();
         session.pause();
       }
+
+      onBackground();
     }
 
     /**
@@ -544,5 +598,13 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //session.setCameraConfig(cameraConfig);
       session.configure(config);
     }
+
+    // Native
+    private native void NativeInit(int samplerate, int buffersize, String tempPath);
+    private native void OpenFileFromAPK(String path, int offset, int length);
+    private native void TogglePlayback();
+    private native void onForeground();
+    private native void onBackground();
+    private native void Cleanup();
 }
 
