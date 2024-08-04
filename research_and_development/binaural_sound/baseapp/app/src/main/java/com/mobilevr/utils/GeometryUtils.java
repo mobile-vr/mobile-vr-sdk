@@ -320,4 +320,29 @@ public class GeometryUtils {
 
         }
     }
+
+    /**
+     * From a (relative) position and an orientation (of the origin), return the
+     * azimuth and elevation.
+     *
+     * @param relPos (float[3])
+     * @param orientation (float[4]) quaternion
+     * @return float[]{azimuth, elevation}
+     */
+    public static float[] calculateOrientation(float[] relPos, float[] orientation){
+        // get rotation matrix of quaternion
+        float[] mat = QuaternionUtils.quaternionToMatrix(orientation);
+
+        // Transform the relative position by the orientation quaternion using
+        float[] relPosLocal = VectorUtils.transformVector(relPos, mat);
+
+        // Calculate azimuth and elevation
+        float x = relPosLocal[0];
+        float y = relPosLocal[1];
+        float z = relPosLocal[2];
+        float azimuth = (float) Math.toDegrees(Math.atan2(y, x));
+        float elevation = (float) Math.toDegrees(Math.atan2(z, Math.sqrt(x * x + y * y)));
+
+        return new float[]{azimuth, elevation};
+    }
 }

@@ -78,8 +78,11 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+import com.mobilevr.utils.GeometryUtils;
+import com.mobilevr.utils.VectorUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -129,6 +132,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // Cube
   private Mesh cubeObjectMesh;
   private Shader cubeObjectShader;
+  private double timer1, timer2;
+  private int counter1=0, counter2=0;
 
   // ======================================================================================= //
   //                                        keep below
@@ -156,7 +161,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     depthSettings.onCreate(this);
 
     // DEBUG PARAMETERS
-    fixCamera = true;
+    fixCamera = false;
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
@@ -402,6 +407,12 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         Log.e(TAG, "Failed to read a required asset file", e);
       }
 
+      // TogglePlayback
+      TogglePlayback();
+
+      timer1 = System.currentTimeMillis();
+      timer2 = System.currentTimeMillis();
+
       // ======================================================================================= //
       //                                        keep below
       // ======================================================================================= //
@@ -556,7 +567,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // For example here's a CUBE
       // applying transformations:
       Matrix.setIdentityM(modelMatrix, 0);
-      Matrix.translateM(modelMatrix, 0, 0.0f, 0f, -2.0f);
+      Matrix.translateM(modelMatrix, 0, 0.0f, 0f, -1.0f);
       Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
@@ -567,6 +578,42 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // drawing the square on the virtual scene
       render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 0, x0, y0, u, v);
       render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+
+
+      // Spatializer
+      float[] soundPos = new float[]{0, 0, -1.0f};
+      float[] camQuat = camera.getPose().getRotationQuaternion();
+      Log.i(TAG, "camQuat: " + Arrays.toString(camQuat));
+      float maxHearingDistance = 1.5f;
+
+      float[] res = processOrientation(soundPos, cameraPosition, camQuat);
+      float inputVolume = processInputVolume(soundPos, cameraPosition, maxHearingDistance);
+
+      // Test
+      /*float[] res = new float[0];
+      // if timer < 100s
+      if (System.currentTimeMillis() - timer1 < 1000000) {
+        if (System.currentTimeMillis() - timer2 > 500) {
+          counter1 += 1;
+          timer2 = System.currentTimeMillis();
+        }
+        // set azimuth to 0
+        // every 10s add 20 to the elevation value.
+        res = new float[] {180.0f, -90 + counter1};
+      }*/ /*if (System.currentTimeMillis() - timer1 > 100000) {
+        if (System.currentTimeMillis() - timer2  > 10000) {
+          counter2 += 1;
+          timer2 = System.currentTimeMillis();
+        }
+        // set elevation to 0
+        // every 10s add 20 to the azimuth value.
+        res = new float[] {20 * counter2, 0};
+      }*/
+      Log.i(TAG, "azimuth: " + res[0] + " elevation: " + 0);
+      // keep input volume to 1
+      //float inputVolume = 1.0f;*/
+
+      setSpatializerParameters(inputVolume, res[0], 0);
 
 
 
@@ -599,6 +646,49 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       session.configure(config);
     }
 
+  /**
+   *
+   * @param soundPos
+   * @param listenerPos
+   * @param camQuat
+   * @return float[2]: {azimuth, elevation}
+   */
+    private float[] processOrientation(float[] soundPos, float[] listenerPos, float[] camQuat) {
+      // Calculate the relative position
+      float[] relPos = new float[] {
+              soundPos[0] - listenerPos[0],
+              soundPos[1] - listenerPos[1],
+              soundPos[2] - listenerPos[2]
+      };
+
+      float[] res = GeometryUtils.calculateOrientation(relPos, camQuat);
+      res[0] = (res[0] + 360) % 360;
+
+      return res;
+    }
+
+    private float processInputVolume(float[] soundPos,
+                                     float[] listenerPos,
+                                     float maxHearingDistance) {
+      float inputVolume;
+
+      // Calculate the relative position
+      float[] relPos = new float[] {
+              soundPos[0] - listenerPos[0],
+              soundPos[1] - listenerPos[1],
+              soundPos[2] - listenerPos[2]
+      };
+      float distance = VectorUtils.norm(relPos);
+
+      // ratio distance from sound to listener / max hearing distance
+      inputVolume = - distance / maxHearingDistance + 1;
+      if (distance >= maxHearingDistance) {
+        return 0;
+      } else {
+        return inputVolume;
+      }
+    }
+
     // Native
     private native void NativeInit(int samplerate, int buffersize, String tempPath);
     private native void OpenFileFromAPK(String path, int offset, int length);
@@ -606,5 +696,15 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     private native void onForeground();
     private native void onBackground();
     private native void Cleanup();
+
+  /**
+   * Set Spatializer parameters. If you don't want the parameter to change use the forbidden value.
+   *
+   * @param inputVolume (float): Input volume (gain). Default: 1. Forbidden value: -1.
+   * @param azimuth (float): From 0 to 360 degrees. Default: 0. 180 is in front.
+   *                Forbidden value: -1.
+   * @param elevation (float): -90 to 90 degrees. Default: 0. Forbidden value: -91.
+   */
+  private native void setSpatializerParameters(float inputVolume, float azimuth, float elevation);
 }
 

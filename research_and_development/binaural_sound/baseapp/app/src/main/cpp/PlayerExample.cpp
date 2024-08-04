@@ -33,8 +33,14 @@ static bool audioProcessing (
     if (player->processStereo(playerOutput, false, (unsigned int)numberOfFrames)) {
         spatializer->process(playerOutput, NULL, playerOutputSpatialized, NULL, (unsigned int)numberOfFrames, true);
         Superpowered::FloatToShortInt(playerOutputSpatialized, audio, (unsigned int)numberOfFrames);
+        //__android_log_print(ANDROID_LOG_ERROR, "mobilevr",
+        //                    "playing: true");
         return true;
-    } else return false;
+    } else {
+        //__android_log_print(ANDROID_LOG_ERROR, "mobilevr",
+        //                    "playing: false");
+        return false;
+    }
 }
 
 // StartAudio - Start audio engine and initialize player.
@@ -61,6 +67,9 @@ Java_com_example_myapp_HelloArActivity_NativeInit(JNIEnv *env, jobject __unused 
             -1,                             // inputStreamType (-1 = default)
             SL_ANDROID_STREAM_MEDIA         // outputStreamType (-1 = default)
     );
+
+    // Initialize the spatializer
+    spatializer = new Superpowered::Spatializer((unsigned int)samplerate);
 }
 
 // OpenFile - Open file in player, specifying offset and length.
@@ -105,4 +114,30 @@ extern "C" JNIEXPORT void
 Java_com_example_myapp_HelloArActivity_Cleanup(JNIEnv * __unused env, jobject __unused obj) {
     delete audioIO;
     delete player;
+}
+
+// Set spatializer parameters
+extern "C" JNIEXPORT void
+Java_com_example_myapp_HelloArActivity_setSpatializerParameters(
+        JNIEnv *env,
+        jobject __unused obj,
+        jfloat inputVolume,
+        jfloat azimuth,
+        jfloat elevation) {
+    if (inputVolume != -1) {
+        spatializer->inputVolume = inputVolume;
+        __android_log_print(ANDROID_LOG_ERROR, "mobilevr",
+                            "inputVolume: %f", spatializer->inputVolume);
+    }
+    if (azimuth != -1) {
+        spatializer->azimuth = azimuth;
+        __android_log_print(ANDROID_LOG_ERROR, "mobilevr",
+                            "azimuth: %f", spatializer->azimuth);
+    }
+    if (elevation != -91) {
+        spatializer->elevation = elevation;
+        __android_log_print(ANDROID_LOG_ERROR, "mobilevr",
+                            "elevation: %f", spatializer->elevation);
+    }
+
 }
