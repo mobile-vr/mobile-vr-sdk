@@ -666,6 +666,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
               1
       };
 
+      Log.i(TAG, "soundPos: " + Arrays.toString(soundPos) +
+              " listenerPos: " + Arrays.toString(listenerPos) +
+              " relPos: " + Arrays.toString(relPos)
+      ); // ici
+
       // Extract rotation around Y axis from camera quaternion
       float[] camRotationMatrix = quaternionToMatrix(camQuat);
       float[] yRotationMatrix = new float[] {
