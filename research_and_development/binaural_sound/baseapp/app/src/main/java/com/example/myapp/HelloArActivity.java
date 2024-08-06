@@ -37,6 +37,8 @@
 
 package com.example.myapp;
 
+import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
+
 import com.baseapp.R;
 
 import com.mobilevr.modified.samplerender.arcore.BackgroundRenderer;
@@ -583,10 +585,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // Spatializer
       float[] soundPos = new float[]{0, 0, -1.0f};
       float[] camQuat = camera.getPose().getRotationQuaternion();
-      Log.i(TAG, "camQuat: " + Arrays.toString(camQuat));
+      //Log.i(TAG, "camQuat: " + Arrays.toString(camQuat));
       float maxHearingDistance = 1.5f;
 
-      float[] res = processOrientation(soundPos, cameraPosition, camQuat);
+      float azimut = processOrientation(soundPos, cameraPosition, camQuat);
       float inputVolume = processInputVolume(soundPos, cameraPosition, maxHearingDistance);
 
       // Test
@@ -609,11 +611,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         // every 10s add 20 to the azimuth value.
         res = new float[] {20 * counter2, 0};
       }*/
-      Log.i(TAG, "azimuth: " + res[0] + " elevation: " + 0);
+      Log.i(TAG, "azimut: " + azimut);
       // keep input volume to 1
       //float inputVolume = 1.0f;*/
 
-      setSpatializerParameters(inputVolume, res[0], 0);
+      setSpatializerParameters(inputVolume, azimut, 0);
 
 
 
@@ -651,20 +653,40 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
    * @param soundPos
    * @param listenerPos
    * @param camQuat
-   * @return float[2]: {azimuth, elevation}
+   * @return float: azimut
    */
-    private float[] processOrientation(float[] soundPos, float[] listenerPos, float[] camQuat) {
+    private float processOrientation(float[] soundPos, float[] listenerPos, float[] camQuat) {
+      float azimut;
+
       // Calculate the relative position
       float[] relPos = new float[] {
               soundPos[0] - listenerPos[0],
               soundPos[1] - listenerPos[1],
-              soundPos[2] - listenerPos[2]
+              soundPos[2] - listenerPos[2],
+              1
       };
 
-      float[] res = GeometryUtils.calculateOrientation(relPos, camQuat);
-      res[0] = (res[0] + 360) % 360;
+      // Extract rotation around Y axis from camera quaternion
+      float[] camRotationMatrix = quaternionToMatrix(camQuat);
+      float[] yRotationMatrix = new float[] {
+              camRotationMatrix[0], 0, camRotationMatrix[2], 0,
+              0, 1, 0, 0,
+              camRotationMatrix[8], 0, camRotationMatrix[10], 0,
+              0, 0, 0, 1
+      };
 
-      return res;
+      // Apply Y rotation to the relPos vector
+      float[] relPosRotated = new float[4];
+      Matrix.multiplyMV(relPosRotated, 0, yRotationMatrix, 0, relPos, 0);
+
+      azimut = (float) Math.toDegrees( Math.atan2(relPosRotated[0], relPosRotated[3]) );
+
+      azimut = ( azimut + 360 ) % 360;
+
+      // Reverse rotation
+      azimut = 360 - azimut;
+
+      return azimut;
     }
 
     private float processInputVolume(float[] soundPos,

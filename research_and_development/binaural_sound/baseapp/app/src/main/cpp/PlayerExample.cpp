@@ -126,18 +126,18 @@ Java_com_example_myapp_HelloArActivity_setSpatializerParameters(
         jfloat elevation) {
     if (inputVolume != -1) {
         spatializer->inputVolume = inputVolume;
-        __android_log_print(ANDROID_LOG_ERROR, "mobilevr",
-                            "inputVolume: %f", spatializer->inputVolume);
+        //__android_log_print(ANDROID_LOG_ERROR, "mobilevr",
+        //                    "inputVolume: %f", spatializer->inputVolume);
     }
     if (azimuth != -1) {
         spatializer->azimuth = azimuth;
-        __android_log_print(ANDROID_LOG_ERROR, "mobilevr",
-                            "azimuth: %f", spatializer->azimuth);
+        //__android_log_print(ANDROID_LOG_ERROR, "mobilevr",
+        //                    "azimuth: %f", spatializer->azimuth);
     }
     if (elevation != -91) {
         spatializer->elevation = elevation;
-        __android_log_print(ANDROID_LOG_ERROR, "mobilevr",
-                            "elevation: %f", spatializer->elevation);
+        //__android_log_print(ANDROID_LOG_ERROR, "mobilevr",
+        //                    "elevation: %f", spatializer->elevation);
     }
 
 }
