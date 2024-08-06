@@ -4,7 +4,7 @@
 
 extern "C" {
     JNIEXPORT
-jstring Java_com_example_glyph_1font_1v1_MainActivity_stringFromJNI(
+jstring Java_com_example_myapp_HelloArActivity_stringFromJNI(
         JNIEnv *env,
         jobject /* this */)
     {
