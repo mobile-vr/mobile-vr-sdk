@@ -26,7 +26,7 @@ android {
     namespace 'com.baseapp'
     externalNativeBuild {
         cmake {
-            path file('src/main/cpp/binaural_sound/CMakeLists.txt')
+            path file('src/main/cpp/freetype-2.10.0/CMakeLists.txt')
             version '3.22.1'
         }
     }
