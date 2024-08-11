@@ -101,8 +101,8 @@ import java.util.Map;
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
   static {
-    System.loadLibrary("PlayerExample");
-    System.loadLibrary("myTarget");
+    System.loadLibrary("PlayerExampled");
+    System.loadLibrary("myTargetd");
   }
   private static final String TAG = "mobilevr";
   private static final float Z_NEAR = 0.1f;
@@ -146,10 +146,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // Cube
   private Mesh cubeObjectMesh;
   private Shader cubeObjectShader;
-  private double timer1, timer2;
-  private int counter1=0, counter2=0;
 
   // Virtual log screen
+  private double timer1;
   private Map<Character, VirtualObject> fontMap = new HashMap<>();
   private VirtualLogWindow virtualLogWindow;
   private boolean debugScreenActivated;
@@ -233,18 +232,20 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
 
     // Virtual log screen
-    debugScreenActivated = true;
+    debugScreenActivated = false;
 
-    // Init virtualLogWindow
-    float width = 1.5f;
-    float height = 1.0f;
-    float zPos = -2.0f;
-    virtualLogWindow = new VirtualLogWindow(
-            40,
-            25,
-            zPos,
-            width,
-            height);
+    if (debugScreenActivated) {
+      // Init virtualLogWindow
+      float width = 1.5f;
+      float height = 1.0f;
+      float zPos = -2.5f;
+      virtualLogWindow = new VirtualLogWindow(
+              40,
+              25,
+              zPos,
+              width,
+              height);
+    }
 
     // ======================================================================================= //
     //                                        keep below
@@ -448,16 +449,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // TogglePlayback
       TogglePlayback();
 
-      timer1 = System.currentTimeMillis();
-      timer2 = System.currentTimeMillis();
-
 
 
       // Virtual log screen
-      debugScreenActivated = true;
-
-      // debug screen
       if (debugScreenActivated) {
+        timer1 = System.currentTimeMillis();
         try {
           // Open an InputStream to the font file in assets
           AssetManager assetManager = getAssets();
@@ -470,17 +466,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
           // Pass the byte array to the native method
           long fontPtr = loadFontFromAssets(fontData);
-          Log.i(TAG, String.valueOf(fontPtr));
-
-          int numGlyphs = get_num_glyphs(fontPtr);
-          Log.i(TAG, "numGlyphs: " + numGlyphs);
 
           // For each wanted character create a texture in OpenGL, 33 is '!'
           for (char c = 33; c < 127; c++) {
-
-            //Log.i(TAG, "c : " + (long) c + " hexa : " + 0x0065);
             BitmapData characterBitmap = getCharacterBitmap(fontPtr, (long) c); // 50x50 pixels used
-            Log.i(TAG, "w and h: " + characterBitmap.getWidth() + " ; " + characterBitmap.getHeight());
 
             // Create Bitmap from pixel data
             Bitmap bitmap = Bitmap.createBitmap(characterBitmap.getWidth(),
@@ -570,10 +559,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
           e.printStackTrace();
           Log.e(TAG, e.toString());
         }
-      }
-
-      for (int i=0; i < 10 ; i++) {
-        virtualLogWindow.add("Hello World!");
       }
 
       // ======================================================================================= //
@@ -746,37 +731,39 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // Spatializer
       float[] soundPos = new float[]{0, 0, -1.0f};
       float[] camQuat = camera.getPose().getRotationQuaternion();
-      //Log.i(TAG, "camQuat: " + Arrays.toString(camQuat));
       float maxHearingDistance = 1.5f;
 
       float azimut = processOrientation(soundPos, cameraPosition, camQuat);
       float inputVolume = processInputVolume(soundPos, cameraPosition, maxHearingDistance);
 
-      // Test
-      /*float[] res = new float[0];
-      // if timer < 100s
-      if (System.currentTimeMillis() - timer1 < 1000000) {
-        if (System.currentTimeMillis() - timer2 > 500) {
-          counter1 += 1;
-          timer2 = System.currentTimeMillis();
-        }
-        // set azimuth to 0
-        // every 10s add 20 to the elevation value.
-        res = new float[] {180.0f, -90 + counter1};
-      }*/ /*if (System.currentTimeMillis() - timer1 > 100000) {
-        if (System.currentTimeMillis() - timer2  > 10000) {
-          counter2 += 1;
-          timer2 = System.currentTimeMillis();
-        }
-        // set elevation to 0
-        // every 10s add 20 to the azimuth value.
-        res = new float[] {20 * counter2, 0};
-      }*/
-      Log.i(TAG, "azimut: " + azimut);
-      // keep input volume to 1
-      //float inputVolume = 1.0f;*/
-
       setSpatializerParameters(inputVolume, azimut, 0);
+
+
+
+
+      // Every 3s add log
+      if (debugScreenActivated) {
+        float[] relPos = new float[]{
+                soundPos[0] - cameraPosition[0],
+                soundPos[1] - cameraPosition[1],
+                soundPos[2] - cameraPosition[2],
+                1
+        };
+
+        if (System.currentTimeMillis() - timer1 > 3000) {
+          virtualLogWindow.add(
+                  "Listener: (" +
+                          cameraPosition[0] + ", " +
+                          cameraPosition[1] + ", " +
+                          cameraPosition[2] +
+                          ") relPos: (" +
+                          relPos[0] + ", " +
+                          relPos[1] + ", " +
+                          relPos[2] + ")"
+          );
+          timer1 = System.currentTimeMillis();
+        }
+      }
 
 
 
@@ -785,53 +772,54 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
 
       // Virtual log screen
+      if (debugScreenActivated) {
+        // applying transformations:
+        Matrix.setIdentityM(modelMatrix, 0);
+        //Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
+        //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
+        //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+        Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 
-      // applying transformations:
-      Matrix.setIdentityM(modelMatrix, 0);
-      //Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
-      //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
-      //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
-      Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+        windowBackground.shader.setVec4("vColor", new float[]{0.0f, 0.0f, 0.0f, 1.0f});
+        windowBackground.shader.setMat4("uMVPMatrix", uMVPMatrix);
 
-      windowBackground.shader.setVec4("vColor", new float[]{0.0f, 0.0f, 0.0f, 1.0f});
-      windowBackground.shader.setMat4("uMVPMatrix", uMVPMatrix);
+        render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+        render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
 
-      render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-      render.draw(windowBackground.mesh, windowBackground.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+        // draw characters onto the virtual window
+        float tXInit = -virtualLogWindow.getWidth() / 2;
+        float tYInit = virtualLogWindow.getHeight() / 2;
+        float tZ = virtualLogWindow.getZPos();
+        float verticalPadding = 0.005f;
 
-      // draw characters onto the virtual window
-      float tXInit = - virtualLogWindow.getWidth() / 2;
-      float tYInit = virtualLogWindow.getHeight() / 2;
-      float tZ = virtualLogWindow.getZPos();
-      float verticalPadding = 0.005f;
+        for (int i = 0; i < virtualLogWindow.stringArrayBuffer.getCurrentSize(); i++) {
+          String currentString = virtualLogWindow.getString(i);
+          for (int j = 0; j < currentString.length(); j++) {
+            char c = currentString.charAt(j);
+            if (c != ' ') {
+              float tX = tXInit + virtualLogWindow.getCharLength() * j;
+              float tY = tYInit - virtualLogWindow.getCharHeight() * i - verticalPadding * i;
 
-      for (int i=0 ; i < virtualLogWindow.stringArrayBuffer.getCurrentSize() ; i ++) {
-        String currentString = virtualLogWindow.getString(i);
-        for (int j=0 ; j < currentString.length() ; j++) {
-          char c = currentString.charAt(j);
-          if (c != ' ') {
-            float tX = tXInit + virtualLogWindow.getCharLength() * j;
-            float tY = tYInit - virtualLogWindow.getCharHeight() * i - verticalPadding * i;
+              // applying transformations:
+              Matrix.setIdentityM(modelMatrix, 0);
+              Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
+              //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
+              //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+              Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 
-            // applying transformations:
-            Matrix.setIdentityM(modelMatrix, 0);
-            Matrix.translateM(modelMatrix, 0, tX, tY, tZ);
-            //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
-            //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
-            Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+              // Setting the position, scale and orientation to the square
+              VirtualObject anyChar = fontMap.get(c);
 
-            // Setting the position, scale and orientation to the square
-            VirtualObject anyChar = fontMap.get(c);
+              if (anyChar != null) {
 
-            if (anyChar != null) {
+                anyChar.shader.setMat4("uMVPMatrix", uMVPMatrix);
+                // drawing the square
+                render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+                render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
 
-              anyChar.shader.setMat4("uMVPMatrix", uMVPMatrix);
-              // drawing the square
-              render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-              render.draw(anyChar.mesh, anyChar.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
-
-            } else {
-              throw new Error("virtualObject for this char is null");
+              } else {
+                throw new Error("virtualObject for this char is null");
+              }
             }
           }
         }
@@ -868,6 +856,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     }
 
   /**
+   * Returns the azimut of the listener
    *
    * @param soundPos
    * @param listenerPos
@@ -879,16 +868,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
       // Calculate the relative position
       float[] relPos = new float[] {
-              soundPos[0] - listenerPos[0],
+              - soundPos[0] + listenerPos[0],
               soundPos[1] - listenerPos[1],
               soundPos[2] - listenerPos[2],
               1
       };
-
-      Log.i(TAG, "soundPos: " + Arrays.toString(soundPos) +
-              " listenerPos: " + Arrays.toString(listenerPos) +
-              " relPos: " + Arrays.toString(relPos)
-      ); // ici
 
       // Extract rotation around Y axis from camera quaternion
       float[] camRotationMatrix = quaternionToMatrix(camQuat);
@@ -913,6 +897,14 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       return azimut;
     }
 
+  /**
+   * Returns the input volume from 0 to 1.
+   *
+   * @param soundPos
+   * @param listenerPos
+   * @param maxHearingDistance
+   * @return
+   */
     private float processInputVolume(float[] soundPos,
                                      float[] listenerPos,
                                      float maxHearingDistance) {
@@ -938,7 +930,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     // Native
     private native void NativeInit(int samplerate, int buffersize, String tempPath);
     private native void OpenFileFromAPK(String path, int offset, int length);
-    private native void TogglePlayback();
+
+  /**
+   * Toggle Play/Pause the playing sound.
+   */
+  private native void TogglePlayback();
     private native void onForeground();
     private native void onBackground();
     private native void Cleanup();
