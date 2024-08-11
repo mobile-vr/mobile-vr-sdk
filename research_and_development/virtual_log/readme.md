@@ -15,7 +15,7 @@ I need a virtual log to debug while being in VR, or while adb isn't available.<b
 - com.example.myapp : where the activities are
 - com.google.ar.core : the ARCore package
 - com.mobilevr : the sdk of this repository
-- freetype c++ library
+- freetype c++ library v2.10.0
 
 ## Dependencies
 See [Licenses\external_dependencies](Licenses/external_licenses)
