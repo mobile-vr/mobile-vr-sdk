@@ -5,3 +5,4 @@
 - arcore-android-sdk
 - mediapipe
 - obj
+- freetype
