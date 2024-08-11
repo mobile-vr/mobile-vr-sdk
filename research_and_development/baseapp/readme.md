@@ -16,12 +16,8 @@ understand how to implement their first objects.
 - Displays a cube
 
 ## Used packages
-- com.example.myapp : where the activities are
-- com.google.ar.core : the ARCore package
-- com.mobilevr : the sdk of this repository
-
-## Dependencies
-See [Licenses\external_dependencies](Licenses/external_licenses)
+- ar.core : v1.41.0
+- mobilevr : v1.0.0
 
 ## Modifications from the original codes hello_ar_java<br>app from ARCore SDK for Android 1.41.0
 The logs of differences are here:
