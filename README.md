@@ -21,7 +21,7 @@ Software Development Kit to build XR apps on Android.<br>
 | Splitted screen like VR | Developped |
 | Change screen sizes | Developped |
 | Joystick support | Developped |
-| Binaural sound effect | In progress |
+| 3D binaural audio | Developped |
 | Multiplayer | |
 | Vocal command | |
 | Video streaming | |

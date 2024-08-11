@@ -12,13 +12,9 @@ I need a virtual log to debug while being in VR, or while adb isn't available.<b
 - Display window with a string on it
 
 ## Used packages
-- com.example.myapp : where the activities are
-- com.google.ar.core : the ARCore package
-- com.mobilevr : the sdk of this repository
-- freetype c++ library
-
-## Dependencies
-See [Licenses\external_dependencies](Licenses/external_licenses)
+- ar.core: v1.41.0
+- mobilevr: v1.2.0
+- freetype: v2.10.0
 
 ## Modifications from the original codes hello_ar_java<br>app from ARCore SDK for Android 1.41.0
 The logs of differences are here:
