@@ -39,6 +39,7 @@ package com.example.myapp;
 
 import com.baseapp.R;
 
+import com.mobilevr.modified.samplerender.Texture;
 import com.mobilevr.modified.samplerender.arcore.BackgroundRenderer;
 import com.mobilevr.modified.samplerender.Framebuffer;
 import com.mobilevr.modified.samplerender.Mesh;
@@ -121,9 +122,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
   // Implement your variables here
 
-  // Cube
-  private Mesh cubeObjectMesh;
-  private Shader cubeObjectShader;
+  // Cubemap
+  private Mesh cubemapObjectMesh;
+  private Shader cubemapObjectShader;
 
   // ======================================================================================= //
   //                                        keep below
@@ -151,7 +152,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     depthSettings.onCreate(this);
 
     // DEBUG PARAMETERS
-    fixCamera = true;
+    fixCamera = false;
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
@@ -326,23 +327,34 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //                                        keep above
       // ======================================================================================= //
 
-      // Implement the objects of your game here.
-
-      // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
-      // an IOException.
+      // Making a cubemap texture
+      String[] faces = {"images/skybox/Corsica_bridge/nx.png",
+              "images/skybox/Corsica_bridge/px.png",
+              "images/skybox/Corsica_bridge/py.png",
+              "images/skybox/Corsica_bridge/ny.png",
+              "images/skybox/Corsica_bridge/pz.png",
+              "images/skybox/Corsica_bridge/nz.png"};
       try {
-        // For example here's a CUBE
-        cubeObjectMesh = Mesh.createFromAsset(render, "models/cube.obj");
+        Texture myCubemapTexture = Texture.loadCubemap(render,
+                faces,
+                Texture.WrapMode.CLAMP_TO_EDGE,
+                Texture.ColorFormat.SRGB);
 
-        cubeObjectShader =
+        // Create the cube Mesh
+        cubemapObjectMesh = Mesh.createFromAsset(render, "models/cube.obj");
+
+        cubemapObjectShader =
                 Shader.createFromAssets(
-                        render,
-                        "shaders/simpleShader.vert", // .vert is for the position
-                        "shaders/simpleShader.frag", // .frag is for the color
-                        null);
+                                render,
+                                "shaders/skyBox.vert", // is for the position
+                                "shaders/skyBox.frag", // fragment is for the color
+                                null)
+                        .setTexture("skybox", myCubemapTexture);
 
+      } catch (Error e) {
+        Log.e(TAG, e.toString());
       } catch (IOException e) {
-        Log.e(TAG, "Failed to read a required asset file", e);
+        throw new RuntimeException(e);
       }
 
       // ======================================================================================= //
@@ -494,22 +506,26 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //                                        keep above
       // ========================================================================================= //
 
-      // Implement the drawing behavior of your game here.
-
-      // For example here's a CUBE
+      // setting model * projection * view matrix to cubeObjectShader
+      Pose pose = camera.getPose();
+      float px = pose.tx();
+      float py = pose.ty();
+      float pz = pose.tz();
       // applying transformations:
       Matrix.setIdentityM(modelMatrix, 0);
-      Matrix.translateM(modelMatrix, 0, 0.0f, 0f, -2.0f);
-      Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+      // Translate, Scale and Rotate
+      Matrix.translateM(modelMatrix, 0, px, py, pz);
+      Matrix.scaleM(modelMatrix, 0, 2.0f, 2.0f, 2.0f);
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+      // Apply modifications
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
-      // setting the color
-      cubeObjectShader.setVec4("vColor", new float[]{0.63671875f, 0.76953125f, 0.22265625f, 1.0f});
-      // Setting the position, scale and orientation to the square
-      cubeObjectShader.setMat4("uMVPMatrix", uMVPMatrix);
-      // drawing the square on the virtual scene
-      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 0, x0, y0, u, v);
-      render.draw(cubeObjectMesh, cubeObjectShader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+      cubemapObjectShader.setMat4("uMVPMatrix", uMVPMatrix);
+
+      // drawing cubemap
+      render.draw(cubemapObjectMesh, cubemapObjectShader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+      render.draw(cubemapObjectMesh, cubemapObjectShader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+
+
 
 
 

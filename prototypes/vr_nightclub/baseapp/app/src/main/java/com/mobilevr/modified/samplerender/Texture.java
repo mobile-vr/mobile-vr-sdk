@@ -287,7 +287,7 @@ public class Texture implements Closeable {
                       Bitmap.Config.ARGB_8888);
 
       // flip bitmaps except for the top, because we see the inside of the cube
-      if (i != 2) {
+      /*if (i != 2) {
         Matrix flipMatrix = new Matrix();
         flipMatrix.postScale(-1, 1); // flip horizontally
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
@@ -297,7 +297,11 @@ public class Texture implements Closeable {
         flipMatrix.postScale(1, -1); // flip vertically
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
                 bitmap.getHeight(), flipMatrix, true); // apply the transformation
-      }
+      }*/
+      Matrix flipMatrix = new Matrix();
+      flipMatrix.postScale(-1, 1); // flip horizontally
+      bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+              bitmap.getHeight(), flipMatrix, true); // apply the transformation
 
       ByteBuffer buffer = ByteBuffer.allocateDirect(bitmap.getByteCount());
       bitmap.copyPixelsToBuffer(buffer);
