@@ -328,12 +328,12 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // ======================================================================================= //
 
       // Making a cubemap texture
-      String[] faces = {"images/skybox/Corsica_bridge/nx.png",
-              "images/skybox/Corsica_bridge/px.png",
-              "images/skybox/Corsica_bridge/py.png",
-              "images/skybox/Corsica_bridge/ny.png",
-              "images/skybox/Corsica_bridge/pz.png",
-              "images/skybox/Corsica_bridge/nz.png"};
+      String[] faces = {"images/skybox/Corsica_bridge_v2/nx.png",
+              "images/skybox/Corsica_bridge_v2/px.png",
+              "images/skybox/Corsica_bridge_v2/py.png",
+              "images/skybox/Corsica_bridge_v2/ny.png",
+              "images/skybox/Corsica_bridge_v2/pz.png",
+              "images/skybox/Corsica_bridge_v2/nz.png"};
       try {
         Texture myCubemapTexture = Texture.loadCubemap(render,
                 faces,
@@ -346,8 +346,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         cubemapObjectShader =
                 Shader.createFromAssets(
                                 render,
-                                "shaders/skyBox.vert", // is for the position
-                                "shaders/skyBox.frag", // fragment is for the color
+                                "shaders/cubemap/skyBox.vert", // is for the position
+                                "shaders/cubemap/skyBox.frag", // fragment is for the color
                                 null)
                         .setTexture("skybox", myCubemapTexture);
 
