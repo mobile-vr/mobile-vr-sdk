@@ -37,6 +37,10 @@
 
 package com.example.myapp;
 
+import static com.mobilevr.utils.GeometryUtils.buildPerspectiveMatrix;
+import static com.mobilevr.utils.GeometryUtils.calculateAspectRatio;
+import static com.mobilevr.utils.GeometryUtils.createPerspectiveMatrix;
+
 import com.baseapp.R;
 
 import com.mobilevr.modified.samplerender.Texture;
@@ -79,6 +83,7 @@ import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -105,7 +110,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // FYI: Temporary matrix allocated here to reduce number of allocations for each frame.
   private final float[] modelMatrix = new float[16];
   private final float[] viewMatrix = new float[16];
-  private final float[] projectionMatrix = new float[16];
+  private float[] projectionMatrix = new float[16];
   private final float[] uMVPMatrix = new float[16];
   private final float[] vPMatrix = new float[16];
   private float x0= (float) 0.1, y0= (float) 0.1, u= (float) 0.8, v= (float) 0.4;
@@ -327,6 +332,16 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //                                        keep above
       // ======================================================================================= //
 
+      // Build perspective projection matrice
+      // Redmi 8 resolution: 1520x720
+      // 1520 * 0.4 ; 720 * 0.8
+      //float fovX = (float) Math.toRadians(200);
+      float fovY = (float) Math.toRadians(80);
+      //float customM32 = -1;
+      //float aspect = calculateAspectRatio(fovX, fovY);
+      //projectionMatrix = buildPerspectiveMatrix(fovX, fovY, 1, Z_NEAR, Z_FAR, customM32);
+      projectionMatrix = createPerspectiveMatrix(fovY, 1, Z_NEAR, Z_FAR);
+
       // Making a cubemap texture
       String[] faces = {"images/skybox/Corsica_bridge_v2/nx.png",
               "images/skybox/Corsica_bridge_v2/px.png",
@@ -478,7 +493,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       }
 
       // Get projection matrix.
-      camera.getProjectionMatrix(projectionMatrix, 0, Z_NEAR, Z_FAR);
+      //camera.getProjectionMatrix(projectionMatrix, 0, Z_NEAR, Z_FAR);
+      Log.i(TAG, "projectionMatrix: " + Arrays.toString(projectionMatrix));
 
       // Get camera matrix and draw.
     /*
