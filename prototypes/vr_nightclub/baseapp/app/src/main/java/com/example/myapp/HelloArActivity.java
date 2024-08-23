@@ -343,12 +343,12 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       projectionMatrix = createPerspectiveMatrix(fovY, 1, Z_NEAR, Z_FAR);
 
       // Making a cubemap texture
-      String[] faces = {"images/skybox/Corsica_bridge_v2/nx.png",
-              "images/skybox/Corsica_bridge_v2/px.png",
-              "images/skybox/Corsica_bridge_v2/py.png",
-              "images/skybox/Corsica_bridge_v2/ny.png",
-              "images/skybox/Corsica_bridge_v2/pz.png",
-              "images/skybox/Corsica_bridge_v2/nz.png"};
+      String[] faces = {"images/skybox/Corsica_bridge_v4/nx.png",
+              "images/skybox/Corsica_bridge_v4/px.png",
+              "images/skybox/Corsica_bridge_v4/py.png",
+              "images/skybox/Corsica_bridge_v4/ny.png",
+              "images/skybox/Corsica_bridge_v4/pz.png",
+              "images/skybox/Corsica_bridge_v4/nz.png"};
       try {
         Texture myCubemapTexture = Texture.loadCubemap(render,
                 faces,
@@ -531,7 +531,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       Matrix.setIdentityM(modelMatrix, 0);
       // Translate, Scale and Rotate
       Matrix.translateM(modelMatrix, 0, px, py, pz);
-      Matrix.scaleM(modelMatrix, 0, 2.0f, 2.0f, 2.0f);
+      Matrix.scaleM(modelMatrix, 0, 57.0f, 57.0f, 57.0f); // 57 so that all points are < Z_FAR (clipping plane)
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       // Apply modifications
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
