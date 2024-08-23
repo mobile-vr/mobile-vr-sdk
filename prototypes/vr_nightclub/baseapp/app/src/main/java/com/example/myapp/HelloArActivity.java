@@ -43,6 +43,8 @@ import static com.mobilevr.utils.GeometryUtils.createPerspectiveMatrix;
 
 import com.baseapp.R;
 
+import com.mobilevr.designobjects.ObjProcess;
+import com.mobilevr.designobjects.VirtualObject;
 import com.mobilevr.modified.samplerender.Texture;
 import com.mobilevr.modified.samplerender.arcore.BackgroundRenderer;
 import com.mobilevr.modified.samplerender.Framebuffer;
@@ -81,10 +83,13 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+import com.mobilevr.utils.VectorUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
@@ -130,6 +135,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // Cubemap
   private Mesh cubemapObjectMesh;
   private Shader cubemapObjectShader;
+  // floor
+  private VirtualObject floorObject;
+  // Speaker
+  private ObjProcess speakerObjProcess;
+  private VirtualObject speakerVirtualObject;
 
   // ======================================================================================= //
   //                                        keep below
@@ -366,6 +376,63 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                                 null)
                         .setTexture("skybox", myCubemapTexture);
 
+        // Create floor
+        Texture floorTexture = Texture.createFromAsset(
+                render,
+                "images/textures/sand.jpg",
+                Texture.WrapMode.REPEAT,
+                Texture.ColorFormat.SRGB);
+
+        // square object init
+        float[] squareCoords = { // counterclock order
+                // Front face
+                -57.0f, 0.0f, -3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 50.0f,
+                -57.0f, 0.0f, 57.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                57.0f, 0.0f, 57.0f, 0.0f, 0.0f, 0.0f, 50.0f, 0.0f,
+                57.0f, 0.0f, -3.0f, 0.0f, 0.0f, 0.0f, 50.0f, 50.0f
+        };
+        /*float[] squareCoords = { // counterclock order
+                // Front face
+                -0.4f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f,
+                -0.4f, 0.4f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.4f, 0.4f, -2.0f, 0.0f, 0.0f, 0.0f, 0.1f, 0.0f,
+                0.4f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.1f, 0.1f
+        };*/
+        int[] squareIndex = {
+                // Front face
+                0, 1, 2,
+                0, 2, 3
+        };
+        int COORDS_PER_VERTEX = 8; // 3 for position, 3 for color, 2 for texture coordinates
+        String vertexShaderFileName = "shaders/texture/textureShader.vert";
+        String fragmentShaderFileName = "shaders/texture/textureShader.frag";
+        String mode = "texture";
+        floorObject = new VirtualObject(
+                render,
+                COORDS_PER_VERTEX,
+                squareCoords,
+                squareIndex,
+                vertexShaderFileName,
+                fragmentShaderFileName,
+                null,
+                mode);
+
+        // Setting the Texture to the object
+        floorObject.shader.setTexture("ourTexture", floorTexture);
+
+        // A speaker
+        // ObjProcess creation
+        speakerObjProcess = new ObjProcess(this,
+                render,
+                "models/speaker/speaker.obj",
+                "models/speaker/speaker.mtl");
+        // VirtualObject creation
+        speakerVirtualObject = new VirtualObject(
+                render,
+                speakerObjProcess.getSubObjects(),
+                "shaders/obj/v0.2.0_illum2/obj_shader.vert",
+                "shaders/obj/v0.2.0_illum2/obj_shader.frag");
+
       } catch (Error e) {
         Log.e(TAG, e.toString());
       } catch (IOException e) {
@@ -543,6 +610,64 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
 
 
+      // Floor
+      // applying transformations:
+      Matrix.setIdentityM(modelMatrix, 0);
+      //Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, 0.0f);
+      //Matrix.scaleM(modelMatrix, 0, 1.5f, 1.5f, 1.5f);
+      //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+      Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+
+      // Setting the position, scale and orientation to the square
+      floorObject.shader.setMat4("uMVPMatrix", uMVPMatrix);
+
+      // drawing the square
+      render.draw(floorObject.mesh, floorObject.shader, virtualSceneFramebuffer, 0, x0, y0, u, v);
+      render.draw(floorObject.mesh, floorObject.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
+
+
+      // Speaker obj
+      Matrix.setIdentityM(modelMatrix, 0);
+      Matrix.translateM(modelMatrix, 0, -1.0f, 0.2f, -2.0f);
+      //Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+      //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+      Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+
+      float[] lightPos = new float[]{-1.0f, 5.0f, -1.0f};
+      float[] lightColor = VectorUtils.normalizeVector(new float[]{1.0f, 1.0f, 1.0f});
+      float[] viewPos = new float[]{
+              cameraPose.tx(),
+              cameraPose.ty(),
+              cameraPose.tz()
+      };
+
+      Map<String, Object> dynamicParameters = new HashMap<>();
+      dynamicParameters.put("model", modelMatrix);
+      dynamicParameters.put("view", viewMatrix);
+      dynamicParameters.put("projection", projectionMatrix);
+      dynamicParameters.put("lightPos", lightPos);
+      dynamicParameters.put("lightColor", lightColor);
+      dynamicParameters.put("viewPos", viewPos);
+
+      speakerVirtualObject.draw(render, virtualSceneFramebuffer, dynamicParameters, x0, y0, u, v);
+
+
+      // Speaker obj
+      Matrix.setIdentityM(modelMatrix, 0);
+      Matrix.translateM(modelMatrix, 0, 1.0f, 0.2f, -2.0f);
+      //Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+      //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
+      Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
+
+      dynamicParameters = new HashMap<>();
+      dynamicParameters.put("model", modelMatrix);
+      dynamicParameters.put("view", viewMatrix);
+      dynamicParameters.put("projection", projectionMatrix);
+      dynamicParameters.put("lightPos", lightPos);
+      dynamicParameters.put("lightColor", lightColor);
+      dynamicParameters.put("viewPos", viewPos);
+
+      speakerVirtualObject.draw(render, virtualSceneFramebuffer, dynamicParameters, x0, y0, u, v);
 
 
       // ========================================================================================= //
