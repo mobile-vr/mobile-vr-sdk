@@ -268,7 +268,6 @@ public class VirtualObject {
 
                 if (textureOffset != null) {
                     // Set light parameter to shader
-                    Log.i(TAG, "textureOffset : " + textureOffset);
                     float[] myTextureOffset = new float[]{
                             textureOffset.getX(),
                             textureOffset.getY(),

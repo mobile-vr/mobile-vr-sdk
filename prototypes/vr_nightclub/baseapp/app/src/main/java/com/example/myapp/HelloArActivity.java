@@ -39,10 +39,7 @@ package com.example.myapp;
 
 import static com.mobilevr.sound.SoundUtils.processInputVolume;
 import static com.mobilevr.sound.SoundUtils.processOrientation;
-import static com.mobilevr.utils.GeometryUtils.buildPerspectiveMatrix;
-import static com.mobilevr.utils.GeometryUtils.calculateAspectRatio;
 import static com.mobilevr.utils.GeometryUtils.createPerspectiveMatrix;
-import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
 
 import com.baseapp.R;
 
@@ -91,7 +88,6 @@ import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationExceptio
 import com.mobilevr.utils.VectorUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +125,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   private float x0= (float) 0.1, y0= (float) 0.1, u= (float) 0.8, v= (float) 0.4;
 
   // Debug
-  private long time;
   public Context nonUiContext;
   private Boolean fixCamera;
   private float[] cameraPosition = new float[3];
@@ -148,6 +143,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   // Speaker
   private ObjProcess speakerObjProcess;
   private VirtualObject speakerVirtualObject;
+  private boolean firstBoot=true;
 
   // ======================================================================================= //
   //                                        keep below
@@ -190,20 +186,14 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
     // Get Sample rate and buffer size
     String samplerateString = null, buffersizeString = null;
-
     AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-
     if (audioManager != null) {
       samplerateString = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
       buffersizeString = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
     }
-
     if (samplerateString == null) samplerateString = "48000";
-
     if (buffersizeString == null) buffersizeString = "480";
-
     int samplerate = Integer.parseInt(samplerateString);
-
     int buffersize = Integer.parseInt(buffersizeString);
 
 
@@ -221,10 +211,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     String path = getPackageResourcePath();
 
     // start audio engine
-    NativeInit(samplerate, buffersize, getCacheDir().getAbsolutePath());
+    nativeInit(samplerate, buffersize, getCacheDir().getAbsolutePath());
 
     // open audio file from APK
-    OpenFileFromAPK(path, fileOffset, fileLength);
+    openFileFromAPK(path, fileOffset, fileLength);
 
     // ======================================================================================= //
     //                                        keep below
@@ -245,7 +235,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       session = null;
     }
 
-    Cleanup();
+    // Cleanup Superpowered
+    cleanup();
 
     super.onDestroy();
   }
@@ -328,7 +319,12 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       surfaceView.onResume();
       displayRotationHelper.onResume();
 
+      // Resume audio
       onForeground();
+      if (!firstBoot) {
+        togglePlayback();
+      }
+      firstBoot = false;
     }
 
     /**
@@ -347,6 +343,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         session.pause();
       }
 
+      togglePlayback();
       onBackground();
     }
 
@@ -407,13 +404,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // ======================================================================================= //
 
       // Build perspective projection matrice
-      // Redmi 8 resolution: 1520x720
-      // 1520 * 0.4 ; 720 * 0.8
-      //float fovX = (float) Math.toRadians(200);
       float fovY = (float) Math.toRadians(80);
-      //float customM32 = -1;
-      //float aspect = calculateAspectRatio(fovX, fovY);
-      //projectionMatrix = buildPerspectiveMatrix(fovX, fovY, 1, Z_NEAR, Z_FAR, customM32);
       projectionMatrix = createPerspectiveMatrix(fovY, 1, Z_NEAR, Z_FAR);
 
       // Making a cubemap texture
@@ -497,7 +488,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       }
 
       // TogglePlayback
-      TogglePlayback();
+      togglePlayback();
 
       // ======================================================================================= //
       //                                        keep below
@@ -767,16 +758,16 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     }
 
   // Native
-  private native void NativeInit(int samplerate, int buffersize, String tempPath);
-  private native void OpenFileFromAPK(String path, int offset, int length);
+  private native void nativeInit(int samplerate, int buffersize, String tempPath);
+  private native void openFileFromAPK(String path, int offset, int length);
 
   /**
    * Toggle Play/Pause the playing sound.
    */
-  private native void TogglePlayback();
+  private native void togglePlayback();
   private native void onForeground();
   private native void onBackground();
-  private native void Cleanup();
+  private native void cleanup();
 
   /**
    * Set Spatializer parameters. If you don't want the parameter to change use the forbidden value.

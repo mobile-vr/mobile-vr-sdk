@@ -45,7 +45,7 @@ static bool audioProcessing (
 
 // StartAudio - Start audio engine and initialize player.
 extern "C" JNIEXPORT void
-Java_com_example_myapp_HelloArActivity_NativeInit(JNIEnv *env, jobject __unused obj, jint samplerate, jint buffersize, jstring tempPath) {
+Java_com_example_myapp_HelloArActivity_nativeInit(JNIEnv *env, jobject __unused obj, jint samplerate, jint buffersize, jstring tempPath) {
     Superpowered::Initialize("ExampleLicenseKey-WillExpire-OnNextUpdate");
 
     // setting the temp folder for progressive downloads or HLS playback
@@ -74,7 +74,7 @@ Java_com_example_myapp_HelloArActivity_NativeInit(JNIEnv *env, jobject __unused 
 
 // OpenFile - Open file in player, specifying offset and length.
 extern "C" JNIEXPORT void
-Java_com_example_myapp_HelloArActivity_OpenFileFromAPK (
+Java_com_example_myapp_HelloArActivity_openFileFromAPK (
         JNIEnv *env,
         jobject __unused obj,
         jstring path,       // path to APK file
@@ -92,7 +92,7 @@ Java_com_example_myapp_HelloArActivity_OpenFileFromAPK (
 
 // TogglePlayback - Toggle Play/Pause state of the player.
 extern "C" JNIEXPORT void
-Java_com_example_myapp_HelloArActivity_TogglePlayback(JNIEnv * __unused env, jobject __unused obj) {
+Java_com_example_myapp_HelloArActivity_togglePlayback(JNIEnv * __unused env, jobject __unused obj) {
     player->togglePlayback();
     Superpowered::CPU::setSustainedPerformanceMode(player->isPlaying()); // prevent dropouts
 }
@@ -111,7 +111,7 @@ Java_com_example_myapp_HelloArActivity_onForeground(JNIEnv * __unused env, jobje
 
 // Cleanup - Free resources.
 extern "C" JNIEXPORT void
-Java_com_example_myapp_HelloArActivity_Cleanup(JNIEnv * __unused env, jobject __unused obj) {
+Java_com_example_myapp_HelloArActivity_cleanup(JNIEnv * __unused env, jobject __unused obj) {
     delete audioIO;
     delete player;
 }
