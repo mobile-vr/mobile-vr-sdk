@@ -211,7 +211,6 @@ public class VirtualObject {
                 Integer illum = currentSubObject.getMtl().getIllum();
 
                 if (kdTexturePath != null) {
-                    Log.i(TAG, "kdTexturePath : " + kdTexturePath);
                     Texture texture = Texture.createFromAsset(
                             render,
                             kdTexturePath,
@@ -224,7 +223,6 @@ public class VirtualObject {
                 }
 
                 if (nsTexturePath != null) {
-                    Log.i(TAG, "nsTexturePath : " + nsTexturePath);
                     Texture texture = Texture.createFromAsset(
                             render,
                             nsTexturePath,
@@ -237,7 +235,6 @@ public class VirtualObject {
                 }
 
                 if (BumpTexturePath != null) {
-                    Log.i(TAG, "BumpTexturePath : " + BumpTexturePath);
                     Texture texture = Texture.createFromAsset(
                             render,
                             BumpTexturePath,

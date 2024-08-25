@@ -40,6 +40,7 @@ package com.example.myapp;
 import static com.mobilevr.utils.GeometryUtils.buildPerspectiveMatrix;
 import static com.mobilevr.utils.GeometryUtils.calculateAspectRatio;
 import static com.mobilevr.utils.GeometryUtils.createPerspectiveMatrix;
+import static com.mobilevr.utils.QuaternionUtils.quaternionToMatrix;
 
 import com.baseapp.R;
 
@@ -53,6 +54,8 @@ import com.mobilevr.modified.samplerender.SampleRender;
 import com.mobilevr.modified.samplerender.Shader;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.media.AudioManager;
 import android.media.Image;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -93,6 +96,9 @@ import java.util.Map;
 
 
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
+  static {
+    System.loadLibrary("PlayerExample");
+  }
   private static final String TAG = "mobilevr";
   private static final float Z_NEAR = 0.1f;
   private static final float Z_FAR = 100f;
@@ -172,7 +178,55 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       cameraPosition = new float[] {0, 0, 0};
     }
 
-    Toast.makeText(this, "Loading VR scene....", Toast.LENGTH_SHORT).show();
+    // ======================================================================================= //
+    //                                        keep above
+    // ======================================================================================= //
+
+    Toast.makeText(this, "Loading VR scene....", Toast.LENGTH_LONG).show();
+
+    // Audio setup
+
+    // Get Sample rate and buffer size
+    String samplerateString = null, buffersizeString = null;
+
+    AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+
+    if (audioManager != null) {
+      samplerateString = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+      buffersizeString = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+    }
+
+    if (samplerateString == null) samplerateString = "48000";
+
+    if (buffersizeString == null) buffersizeString = "480";
+
+    int samplerate = Integer.parseInt(samplerateString);
+
+    int buffersize = Integer.parseInt(buffersizeString);
+
+
+    // Get the offset and length to know where our file is located.
+    AssetFileDescriptor fd = getResources().openRawResourceFd(R.raw.track);
+    int fileOffset = (int)fd.getStartOffset();
+    int fileLength = (int)fd.getLength();
+    try {
+      fd.getParcelFileDescriptor().close();
+    } catch (IOException e) {
+      Log.e("PlayerExample", "Close error.");
+    }
+
+    // get path to APK package
+    String path = getPackageResourcePath();
+
+    // start audio engine
+    NativeInit(samplerate, buffersize, getCacheDir().getAbsolutePath());
+
+    // open audio file from APK
+    OpenFileFromAPK(path, fileOffset, fileLength);
+
+    // ======================================================================================= //
+    //                                        keep below
+    // ======================================================================================= //
   }
 
   /**
@@ -188,6 +242,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       session.close();
       session = null;
     }
+
+    Cleanup();
 
     super.onDestroy();
   }
@@ -269,6 +325,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
       surfaceView.onResume();
       displayRotationHelper.onResume();
+
+      onForeground();
     }
 
     /**
@@ -286,6 +344,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         surfaceView.onPause();
         session.pause();
       }
+
+      onBackground();
     }
 
     /**
@@ -434,6 +494,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         throw new RuntimeException(e);
       }
 
+      // TogglePlayback
+      TogglePlayback();
+
       // ======================================================================================= //
       //                                        keep below
       // ======================================================================================= //
@@ -554,10 +617,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         return;
       }
 
-      // Get projection matrix.
-      //camera.getProjectionMatrix(projectionMatrix, 0, Z_NEAR, Z_FAR);
-      Log.i(TAG, "projectionMatrix: " + Arrays.toString(projectionMatrix));
-
       // Get camera matrix and draw.
     /*
         | 1 0 0 -eye_x |
@@ -665,6 +724,17 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       speakerVirtualObject.draw(render, virtualSceneFramebuffer, dynamicParameters, x0, y0, u, v);
 
 
+      // Spatializer
+      float[] soundPos = new float[]{0, 1.0f, -2.0f};
+      float[] camQuat = camera.getPose().getRotationQuaternion();
+      float maxHearingDistance = 10.0f;
+
+      float azimut = processOrientation(soundPos, cameraPosition, camQuat);
+      float inputVolume = processInputVolume(soundPos, cameraPosition, maxHearingDistance);
+
+      setSpatializerParameters(inputVolume, azimut, 0);
+
+
       // ========================================================================================= //
       //                                        keep below
       // ========================================================================================= //
@@ -693,5 +763,99 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       //session.setCameraConfig(cameraConfig);
       session.configure(config);
     }
+
+  /**
+   * Returns the azimut of the listener
+   *
+   * @param soundPos
+   * @param listenerPos
+   * @param camQuat
+   * @return float: azimut
+   */
+  private float processOrientation(float[] soundPos, float[] listenerPos, float[] camQuat) {
+    float azimut;
+
+    // Calculate the relative position
+    float[] relPos = new float[] {
+            - soundPos[0] + listenerPos[0],
+            soundPos[1] - listenerPos[1],
+            soundPos[2] - listenerPos[2],
+            1
+    };
+
+    // Extract rotation around Y axis from camera quaternion
+    float[] camRotationMatrix = quaternionToMatrix(camQuat);
+    float[] yRotationMatrix = new float[] {
+            camRotationMatrix[0], 0, camRotationMatrix[2], 0,
+            0, 1, 0, 0,
+            camRotationMatrix[8], 0, camRotationMatrix[10], 0,
+            0, 0, 0, 1
+    };
+
+    // Apply Y rotation to the relPos vector
+    float[] relPosRotated = new float[4];
+    Matrix.multiplyMV(relPosRotated, 0, yRotationMatrix, 0, relPos, 0);
+
+    azimut = (float) Math.toDegrees( Math.atan2(relPosRotated[0], relPosRotated[3]) );
+
+    azimut = ( azimut + 360 ) % 360;
+
+    // Reverse rotation
+    azimut = 360 - azimut;
+
+    return azimut;
+  }
+
+  /**
+   * Returns the input volume from 0 to 1.
+   *
+   * @param soundPos
+   * @param listenerPos
+   * @param maxHearingDistance
+   * @return
+   */
+  private float processInputVolume(float[] soundPos,
+                                   float[] listenerPos,
+                                   float maxHearingDistance) {
+    float inputVolume;
+
+    // Calculate the relative position
+    float[] relPos = new float[] {
+            soundPos[0] - listenerPos[0],
+            soundPos[1] - listenerPos[1],
+            soundPos[2] - listenerPos[2]
+    };
+    float distance = VectorUtils.norm(relPos);
+
+    // ratio distance from sound to listener / max hearing distance
+    inputVolume = - distance / maxHearingDistance + 1;
+    if (distance >= maxHearingDistance) {
+      return 0;
+    } else {
+      return inputVolume;
+    }
+  }
+
+  // Native
+  private native void NativeInit(int samplerate, int buffersize, String tempPath);
+  private native void OpenFileFromAPK(String path, int offset, int length);
+
+  /**
+   * Toggle Play/Pause the playing sound.
+   */
+  private native void TogglePlayback();
+  private native void onForeground();
+  private native void onBackground();
+  private native void Cleanup();
+
+  /**
+   * Set Spatializer parameters. If you don't want the parameter to change use the forbidden value.
+   *
+   * @param inputVolume (float): Input volume (gain). Default: 1. Forbidden value: -1.
+   * @param azimuth (float): From 0 to 360 degrees. Default: 0. 180 is in front.
+   *                Forbidden value: -1.
+   * @param elevation (float): -90 to 90 degrees. Default: 0. Forbidden value: -91.
+   */
+  private native void setSpatializerParameters(float inputVolume, float azimuth, float elevation);
 }
 

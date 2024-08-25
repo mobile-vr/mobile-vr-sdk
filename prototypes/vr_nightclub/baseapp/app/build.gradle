@@ -24,6 +24,17 @@ android {
         }
     }
     namespace 'com.baseapp'
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/binaural_sound/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDir "build/intermediates/stripped_native_libs/debug/out/lib"
+        }
+    }
 }
 
 dependencies {
