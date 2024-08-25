@@ -171,6 +171,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     if (fixCamera) {
       cameraPosition = new float[] {0, 0, 0};
     }
+
+    Toast.makeText(this, "Loading VR scene....", Toast.LENGTH_SHORT).show();
   }
 
   /**
@@ -386,18 +388,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         // square object init
         float[] squareCoords = { // counterclock order
                 // Front face
-                -57.0f, 0.0f, -3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 50.0f,
+                -57.0f, 0.0f, -57.0f, 0.0f, 0.0f, 0.0f, 0.0f, 50.0f,
                 -57.0f, 0.0f, 57.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 57.0f, 0.0f, 57.0f, 0.0f, 0.0f, 0.0f, 50.0f, 0.0f,
-                57.0f, 0.0f, -3.0f, 0.0f, 0.0f, 0.0f, 50.0f, 50.0f
+                57.0f, 0.0f, -57.0f, 0.0f, 0.0f, 0.0f, 50.0f, 50.0f
         };
-        /*float[] squareCoords = { // counterclock order
-                // Front face
-                -0.4f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f,
-                -0.4f, 0.4f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                0.4f, 0.4f, -2.0f, 0.0f, 0.0f, 0.0f, 0.1f, 0.0f,
-                0.4f, -0.2f, -2.0f, 0.0f, 0.0f, 0.0f, 0.1f, 0.1f
-        };*/
         int[] squareIndex = {
                 // Front face
                 0, 1, 2,
@@ -626,10 +621,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       render.draw(floorObject.mesh, floorObject.shader, virtualSceneFramebuffer, 1, x0, y0, u, v);
 
 
-      // Speaker obj
+      // Speaker obj left
       Matrix.setIdentityM(modelMatrix, 0);
       Matrix.translateM(modelMatrix, 0, -1.0f, 0.2f, -2.0f);
-      //Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+      Matrix.scaleM(modelMatrix, 0, 7.0f, 7.0f, 7.0f);
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 
@@ -652,10 +647,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       speakerVirtualObject.draw(render, virtualSceneFramebuffer, dynamicParameters, x0, y0, u, v);
 
 
-      // Speaker obj
+      // Speaker obj right
       Matrix.setIdentityM(modelMatrix, 0);
       Matrix.translateM(modelMatrix, 0, 1.0f, 0.2f, -2.0f);
-      //Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+      Matrix.scaleM(modelMatrix, 0, 7.0f, 7.0f, 7.0f);
       //Matrix.rotateM(modelMatrix, 0, -45f, 0, 0, -1.0f);
       Matrix.multiplyMM(uMVPMatrix, 0, vPMatrix, 0, modelMatrix, 0);
 

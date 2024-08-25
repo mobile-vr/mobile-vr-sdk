@@ -48,5 +48,6 @@ dependencies {
     implementation 'com.google.mediapipe:hands:latest.release'
 
     implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
 }
