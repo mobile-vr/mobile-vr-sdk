@@ -1,23 +1,28 @@
-![screenshot](/screenshots/baseapp_screenshot.jpg)
+![screenshot](/screenshots/vrnightclub_screenshot.jpg)
+
+## How to use?
+Start the app as close to the floor as you can.
+<img src="/screenshots/vrnightclub_tuto_screenshot.jpeg" alt="screenshot" width="500"/>
+
+<img src="/screenshots/vrnightclub_tuto_screenshot.jpeg" alt="drawing" style="width:200px;"/>
+
 
 ## Why this baseapp?
-The baseapp is the starting point before developping a new feature, or creating<br>
-a new VR app. It contains guidelines (see the comments "keep<br>
-above" and "keep below" sections) in the HelloArActivity.java to help novices<br>
-understand how to implement their first objects.
+To demonstrate how to do a music concert with the binaural sound feature.
 
 ## Features
-- 6-dof (ARCore)
-- Rendering (OpenGL)
-- Splitted screen like VR
-- Change screens sizes
+- binaural sound
+- blender object
+- cubemap
 
 ## What does it do?
-- Displays a cube
+It displays two JBL speakers on a floor with a sand texture, with a 360 picture of Corsica as a cubemap surronding the scene.
 
-## Used packages
-- ar.core : v1.41.0
-- mobilevr : v1.0.0
+## Packages and libraries used with version
+- com.google.ar.core : v1.41.0
+- mobilevr : v1.3.1
+- SuperPowered (c++): v2.6.3
+- javagl.obj : v0.4.0
 
 ## Modifications from the original codes hello_ar_java<br>app from ARCore SDK for Android 1.41.0
 The logs of differences are here:
