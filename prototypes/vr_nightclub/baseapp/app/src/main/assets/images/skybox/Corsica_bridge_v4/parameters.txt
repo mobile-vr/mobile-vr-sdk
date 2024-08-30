@@ -1,0 +1,3 @@
+Luminosity: +20%
+Shadows: +100%
+Saturation: +100%
