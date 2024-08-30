@@ -53,8 +53,13 @@ favorite models, implementing your own VR project, developping new features<br>
 and new classes for this sdk.
 
 ## What can we make?
-![screenshot](/screenshots/basket_ball_game_screenshot.jpg)
+### Basket ball game
 [Basket ball app](prototypes/basket_ball_game)
+![screenshot](/screenshots/basket_ball_game_screenshot.jpg)
+
+### VR nightclub for all
+[VR nightclub demo](prototypes/vr_nightclub/)
+![screenshot](/screenshots/vrnightclub_screenshot.jpg)
 
 ## Limitations
 - Hands are not always detected by the ML algorithm. Here are few tips:
@@ -74,6 +79,7 @@ and new classes for this sdk.
 - mediapipe
 - obj
 - freetype
+- SuperPowered
 
 Licenses: [Licenses\external_dependencies](external_licenses)
 
