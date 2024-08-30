@@ -32,8 +32,6 @@ public class SubObject {
                      float v) {
         if (enable) {
             // Setting the position, scale and orientation to the square
-            Log.i(TAG, "drawing: " + mtl.getName());
-            Log.i(TAG, "shader: " + shader);
 
             // Set the dynamic parameters
             for (Map.Entry<String, Object> entry : dynamicParameters.entrySet()) {
