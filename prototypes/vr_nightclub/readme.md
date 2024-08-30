@@ -1,11 +1,8 @@
 ![screenshot](/screenshots/vrnightclub_screenshot.jpg)
 
 ## How to use?
-Start the app as close to the floor as you can.
-<img src="/screenshots/vrnightclub_tuto_screenshot.jpeg" alt="screenshot" width="500"/>
-
+Start the app as close to the floor as you can. Careful that the phone's camera is looking towards as the image shows.
 <img src="/screenshots/vrnightclub_tuto_screenshot.jpeg" alt="drawing" style="width:200px;"/>
-
 
 ## Why this baseapp?
 To demonstrate how to do a music concert with the binaural sound feature.
