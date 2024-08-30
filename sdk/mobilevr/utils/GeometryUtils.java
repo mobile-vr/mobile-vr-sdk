@@ -320,4 +320,40 @@ public class GeometryUtils {
 
         }
     }
+
+    /**
+     *
+     * @param fovY
+     * @param aspect
+     * @param near
+     * @param far
+     * @return
+     */
+    public static float[] createPerspectiveMatrix(float fovY, float aspect, float near, float far) {
+        float[] matrix = new float[16];
+
+        float f = (float) (1.0 / Math.tan(fovY * 0.5));
+
+        matrix[0] = f / aspect;
+        matrix[1] = 0;
+        matrix[2] = 0;
+        matrix[3] = 0;
+
+        matrix[4] = 0;
+        matrix[5] = f;
+        matrix[6] = 0;
+        matrix[7] = 0;
+
+        matrix[8] = 0;
+        matrix[9] = 0;
+        matrix[10] = (far + near) / (near - far);
+        matrix[11] = -1;
+
+        matrix[12] = 0;
+        matrix[13] = 0;
+        matrix[14] = (2 * far * near) / (near - far);
+        matrix[15] = 0;
+
+        return matrix;
+    }
 }
